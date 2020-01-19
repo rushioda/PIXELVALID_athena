@@ -40,7 +40,6 @@ StatusCode DerivationFramework::PixelNtupleMaker::finalize()
 bool DerivationFramework::PixelNtupleMaker::eventPassesFilter() const {
   
   bool isMC = true;
-  
   const xAOD::EventInfo* eventInfo = 0;
   CHECK(evtStore()->retrieve(eventInfo, "EventInfo"));
   unsigned long eventNumber = eventInfo->eventNumber();
@@ -58,7 +57,7 @@ bool DerivationFramework::PixelNtupleMaker::eventPassesFilter() const {
   	if(nTracks==0){
 		std::ofstream ofs("USHIODA.txt",std::ios::out | std::ios::app);  
 		ofs << eventNumber << " " << (*tr_it)->pdgId() << " " << (*tr_it)->nParents() << " " << (*tr_it)->pt() << " " << (*tr_it)->eta() << " " << (*tr_it)->phi()  << std::endl;
-	}
+	  }
   }
 
 //  if (nTracks==0) { return StatusCode::SUCCESS; }
