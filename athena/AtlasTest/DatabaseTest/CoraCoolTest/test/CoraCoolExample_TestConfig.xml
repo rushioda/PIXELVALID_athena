@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<atn>
+<TEST name="CoraCoolExampleSQLite" type="script" suite="Examples">
+<options_atn>AtlasTest/DatabaseTest/CoraCoolTest/share/CoraCoolExample_SQLite.sh</options_atn>
+<timelimit>4</timelimit>
+<author>Richard Hawkings</author>
+<mailto>richard.hawkings@cern.ch</mailto>
+<expectations>
+<errorMessage>FAILURE</errorMessage>
+<successMessage>SUCCESS</successMessage>
+<returnValue>0</returnValue>
+</expectations>
+</TEST>
+
+</atn>

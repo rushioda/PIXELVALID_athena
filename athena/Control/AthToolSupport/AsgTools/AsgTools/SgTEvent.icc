@@ -1,0 +1,158 @@
+// Dear emacs, this is -*- c++ -*-
+// $Id: SgTEvent.icc 687011 2015-08-03 09:25:07Z krasznaa $
+#ifndef ASGTOOLS_SGTEVENT_ICC
+#define ASGTOOLS_SGTEVENT_ICC
+
+// System include(s):
+#include <iostream>
+
+// xAOD include(s):
+#ifdef ROOTCORE
+#   include "xAODRootAccess/TEvent.h"
+#   include "xAODRootAccess/TStore.h"
+#endif // ROOTCORE
+
+namespace asg {
+
+   /// A constant used in the error message printouts
+   static const char* ERROR_SOURCE = "asg::SgTEvent             ERROR   ";
+
+   template< typename T >
+   bool SgTEvent::contains( const std::string& name ) const {
+
+      // Make sure the object is initialised:
+      if( ( ! m_pevm ) && initialize().isFailure() ) {
+         std::cout << ERROR_SOURCE << "Couldn't initialise the tool"
+                   << std::endl;
+         return false;
+      }
+
+      // Check if the object is in the transient store:
+      if ( m_ptds && m_ptds->template contains< T >( name ) ) {
+         return true;
+      }
+
+      // Check if the object is in the event store:
+      return m_pevm->template contains< T >( name );
+   }
+
+   template< typename T >
+   bool SgTEvent::transientContains( const std::string& name ) const {
+
+      // Make sure the object is initialised:
+      if( ( ! m_pevm ) && initialize().isFailure() ) {
+         std::cout << ERROR_SOURCE << "Couldn't initialise the tool"
+                   << std::endl;
+         return false;
+      }
+
+      // Check if the object is in the transient store:
+      if ( m_ptds && m_ptds->template contains< T >( name ) ) {
+         return true;
+      }
+
+      // Check if the object is in the event store:
+      return m_pevm->template transientContains< T >( name );
+   }
+
+   template< typename T >
+   T* SgTEvent::retrieve( const std::string& name ) const {
+
+      // Make sure the object is initialised:
+      if( ( ! m_pevm ) && initialize().isFailure() ) {
+         std::cout << ERROR_SOURCE << "Couldn't initialise the tool"
+                   << std::endl;
+         return 0;
+      }
+
+      // Pointer used in the retrieval:
+      T* pobj = 0;
+
+      // Check the transient store first:
+      if( m_ptds && m_ptds->template contains< T >( name ) ) {
+         if( m_ptds->retrieve( pobj, name ).isSuccess() ) {
+            return pobj;
+         } else {
+            return 0;
+         }
+      }
+
+      // If it's not there, then check the event store:
+      if( m_pevm->retrieve( pobj, name ).isSuccess() ) {
+         return pobj;
+      } else {
+         return 0;
+      }
+   }
+
+   template< typename T >
+   StatusCode SgTEvent::retrieve( T*& pobj, const std::string& name ) {
+
+      pobj = retrieve< T >( name );
+      if( pobj ) {
+         return StatusCode::SUCCESS;
+      } else {
+         return StatusCode::FAILURE;
+      }
+   }
+
+   template< typename T >
+   StatusCode SgTEvent::retrieve( const T*& pobj,
+                                  const std::string& name ) const {
+
+      pobj = retrieve< const T >( name );
+      if( pobj ) {
+         return StatusCode::SUCCESS;
+      } else {
+         return StatusCode::FAILURE;
+      }
+   }
+
+   template< typename T >
+   StatusCode SgTEvent::record( T* pobj, const std::string& name ) {
+
+      // Make sure the object is initialised:
+      if( ( ! m_pevm ) && initialize().isFailure() ) {
+         std::cout << ERROR_SOURCE << "Couldn't initialise the tool"
+                   << std::endl;
+         return StatusCode::FAILURE;
+      }
+
+      // If a transient store is available, try recording it there:
+      if( m_ptds ) {
+         if( m_ptds->template record( pobj, name ).isSuccess() ) {
+            return StatusCode::SUCCESS;
+         } else {
+            return StatusCode::FAILURE;
+         }
+      }
+
+      // If not, then let's try with the event store:
+      if( m_pevm->template record( pobj, name ).isSuccess() ) {
+         return StatusCode::SUCCESS;
+      } else {
+         return StatusCode::FAILURE;
+      }
+   }
+
+   /// Container overwriting is not allowed in standalone mode. The function is
+   /// just here to allow the compilation of code that was mainly written for
+   /// the offline environment. (In case the behaviour of the code is chosen
+   /// according to its runtime configuration.)
+   ///
+   /// As it's a dummy, function parameters are not described here. They are
+   /// modeled after the <code>StoreGateSvc::overwrite</code> function.
+   ///
+   template< typename T >
+   StatusCode SgTEvent::overwrite( T* /*obj*/, const std::string& /*name*/,
+                                   bool /*allowMods*/, bool /*resetOnly*/,
+                                   bool /*noHist*/ ) {
+
+      std::cout << ERROR_SOURCE << "Can't use overwrite in standalone mode"
+                << std::endl;
+      return StatusCode::FAILURE;
+   }
+
+} // namespace asg
+
+#endif // ASGTOOLS_SGTEVENT_ICC

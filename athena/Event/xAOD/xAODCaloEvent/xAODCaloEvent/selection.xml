@@ -1,0 +1,117 @@
+<!-- $Id: selection.xml 706724 2015-11-09 14:16:39Z wlampl $ -->
+<lcgdict>
+
+  <!-- CaloCluster(Container> --> 
+
+  <class name="xAOD::CaloCluster_v1" >
+    <field name="m_p4" transient="true" />
+    <field name="m_pt" transient="true" />
+    <field name="m_p4Cached" transient="true" />
+    <field name="m_ptCached" transient="true" />
+    <field name="m_signalState"  transient="true" />
+    <field name="m_cellLinks"    transient="true" />
+    <field name="m_ownCellLinks"    transient="true" />
+    <field name="m_recoStatus"    transient="true" />
+  </class>
+  <read sourceClass="xAOD::CaloCluster_v1" version="[1-]"
+        targetClass="xAOD::CaloCluster_v1" source="" target="m_p4Cached" >
+    <![CDATA[
+       m_p4Cached.reset();
+    ]]>
+  </read>
+ <read sourceClass="xAOD::CaloCluster_v1" version="[1-]"
+        targetClass="xAOD::CaloCluster_v1" source="" target="m_ptCached" >
+    <![CDATA[
+       m_ptCached.reset();
+    ]]>
+  </read>
+  <read sourceClass="xAOD::CaloCluster_v1" version="[1-]"
+        targetClass="xAOD::CaloCluster_v1" source="" target="m_signalState" >
+    <![CDATA[
+       m_signalState=xAOD::CaloCluster_v1::CALIBRATED;
+    ]]>
+  </read>
+  <read sourceClass="xAOD::CaloCluster_v1" version="[1-]"
+        targetClass="xAOD::CaloCluster_v1" source="" target="m_cellLinks" >
+    <![CDATA[
+       m_cellLinks=0;
+    ]]>
+  </read>
+  <read sourceClass="xAOD::CaloCluster_v1" version="[1-]"
+        targetClass="xAOD::CaloCluster_v1" source="" target="m_ownCellLinks" >
+    <![CDATA[
+       m_ownCellLinks=false;
+    ]]>
+  </read>
+  <class name="xAOD::CaloClusterContainer_v1"
+         id="24997BCA-3F6A-4530-8826-822EE9FC3C08" />
+
+  <class name="xAOD::CaloClusterAuxContainer_v1"
+         id="CE498B3B-A32D-43A3-B9B3-C13D136BACFC" />
+
+  <class name="xAOD::CaloClusterAuxContainer_v2"
+         id="451393B0-69CD-11E4-A739-02163E00A64D" />
+
+  <!-- Link types pointing at clusters: -->
+  <class name="DataLink<xAOD::CaloClusterContainer_v1>" />
+  <class name="std::vector<DataLink<xAOD::CaloClusterContainer_v1> >" />
+
+  <class name="ElementLink<xAOD::CaloClusterContainer_v1>" />
+  <class name="std::vector<ElementLink<xAOD::CaloClusterContainer_v1> >" />
+  <class name="std::vector<std::vector<ElementLink<xAOD::CaloClusterContainer_v1> > >" />
+
+
+  <class name="xAOD::CaloClusterBadChannelData_v1" />
+  <class name="std::vector<xAOD::CaloClusterBadChannelData_v1>" />
+  <class name="std::vector< std::vector<xAOD::CaloClusterBadChannelData_v1> >" />
+  
+
+  <!-- CaloTower(Container) -->
+  <class name="xAOD::CaloTower_v1" >
+    <field name="m_isComplete" transient="true" />
+    <field name="v_fourmom" transient="true" />
+    <field name="m_eta" transient="true" />       
+    <field name="m_phi" transient="true" />
+    <field name="m_invcosheta" transient="true" />
+  </class>
+  <read sourceClass="xAOD::CaloTower_v1" version="[1-]"
+	targetClass="xAOD::CaloTower_v1" source="" target="m_isComplete" >
+    <![CDATA[
+       m_isComplete=false;
+    ]]>
+  </read>
+
+  <class name="xAOD::CaloTowerContainer_v1"
+	 id="EEA02A0F-98D3-464D-BAF1-1C944A700B8A" />
+
+  <class name="xAOD::CaloTowerAuxContainer_v1"
+	 id="CE74E4D1-D2F4-4CED-8191-EC26D8836575" />
+
+  <class name="xAOD::CaloTowerContainerBase_v1" />
+
+   <!-- Link types potentially pointing at Towers: -->
+  <class name="DataLink<xAOD::CaloTowerContainer_v1>" />
+  <class name="std::vector<DataLink<xAOD::CaloTowerContainer_v1> >" />
+
+  <class name="ElementLink<xAOD::CaloTowerContainer_v1>" />
+  <class name="std::vector<ElementLink<xAOD::CaloTowerContainer_v1> >" />
+  <class name="std::vector<std::vector<ElementLink<xAOD::CaloTowerContainer_v1> > >" />
+
+
+
+
+
+  <!-- Additional type(s) needed: -->
+  <class name="std::bitset<3>" />
+  <class name="xAOD::CaloVertexedClusterBase"/>
+  <class name="xAOD::CaloVertexedTopoCluster"/>
+
+  <!-- Suppress the unwanted classes found by ROOT 6. -->
+  <!-- Hopefully we can remove these extra lines at one point... -->
+  <exclusion>
+    <class name="SG::IConstAuxStore" />
+    <class name="DataLink<SG::IConstAuxStore>" />
+    <class name="DataVector<xAOD::IParticle>" />
+  </exclusion>
+
+</lcgdict>

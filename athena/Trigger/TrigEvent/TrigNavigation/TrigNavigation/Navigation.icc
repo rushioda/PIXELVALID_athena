@@ -1,0 +1,153 @@
+// Emacs -*- c++ -*-
+
+/*
+  Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
+*/
+
+
+#ifndef TRIGNAVIGATION_HLTNAVIGATION_ICC
+#define TRIGNAVIGATION_HLTNAVIGATION_ICC
+
+
+/*****************************************************************************
+ *
+ * COMPILE TYPE OBJECTS REGISTRATION
+ *
+ *****************************************************************************/
+
+#include "TrigNavigation/Holder.h"
+#include "TrigNavigation/RoICacheHistory.h"
+#include "CxxUtils/no_sanitize_undefined.h"
+
+/*****************************************************************************
+ *
+ * FEATURES OPERATIONS
+ *
+ *****************************************************************************/
+
+template<class T>
+__attribute__((__used__))
+bool HLT::Navigation::attachFeature NO_SANITIZE_UNDEFINED 
+                                   ( TriggerElement* te, const T* feature,
+				     MemoryManagement mmanagement, std::string& key,
+				     const std::string& label ) {
+  // Get clid
+  CLID clid = ClassID_traits<T>::ID();
+
+  ATH_MSG_DEBUG("attachFeature: of clid: " << clid << "(" << ClassID_traits<T>::typeName() << ")"
+	      << " to TE: " << te->getId()
+	      << " label: \"" << label << "\""
+	      << " memory management: " << mmanagement);
+
+  // get a holder for this type --- if that's new it will be created
+
+  ATH_MSG_VERBOSE("getting Holder for label: " << label );
+  HLTNavDetails::Holder<T>* holder = getHolder<T>(label, nextSubTypeIndex(clid,label));
+  ATH_MSG_VERBOSE("got Holder: " << holder );
+
+  if ( ! holder ) {
+    ATH_MSG_WARNING( "attachFeature: Holder missing for CLID: " << clid );
+    return false;
+  }
+
+  TriggerElement::ObjectIndex objectIndex = holder->add(feature, mmanagement == ObjectInStoreGate,  key);
+  if ( not objectIndex.valid() )
+      return false;
+  te->addFeature(clid, objectIndex, false);
+  RoICacheHistory::RememberAttachFeature(te, clid,  label,  this, objectIndex);
+  return true;
+}
+
+template<class T>
+__attribute__((__used__))
+bool HLT::Navigation::associateExternalCollection(const std::string& label) {
+  CLID clid = ClassID_traits<T>::ID();
+  
+  ATH_MSG_DEBUG("associateExternalCollection: of clid: " << clid << "(" << ClassID_traits<T>::typeName() << ")"
+	      << " label: \"" << label << "\"");
+  HLTNavDetails::Holder<T>* holder = getHolder<T>(label, nextSubTypeIndex(clid,label));    
+  if ( ! holder ) { 
+    ATH_MSG_WARNING( "associateExternalCollection: Holder missing for CLID: " << clid );
+    return false;
+  }
+  return true;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+template<class T>
+__attribute__((__used__))
+bool HLT::Navigation::findOwners(const T* obj, std::vector<const TriggerElement*>& owners, unsigned int id) {
+  std::vector<TriggerElement*>::const_iterator it      = m_factory.listOfProduced().begin();
+  std::vector<TriggerElement*>::const_iterator itEnd   = m_factory.listOfProduced().end();
+  if ( id != 0 ) {
+    it      = m_factory.listOfProduced(id).begin();
+    itEnd   = m_factory.listOfProduced(id).end();
+    ATH_MSG_VERBOSE("findOwners will scann TEs of ID : " << id << " #: " << itEnd-it );
+  } else {
+    ATH_MSG_VERBOSE("findOwners will scann ALL TEs (slow):" << itEnd-it );
+  }
+
+  CLID clid = ClassID_traits<T>::ID();
+
+  auto holders_of_clid = m_holderstorage.getHoldersOfClid<HLTNavDetails::Holder<T> >(clid); 
+  
+  if(holders_of_clid.empty())
+    return true;
+
+  ATH_MSG_VERBOSE("findOwners features of this CLID present " );
+  bool holderFound = false;
+  HLT::TriggerElement::ObjectIndex idx;
+  for(auto holder : holders_of_clid ) {
+    if ( holder->contains(obj, idx) ) {
+      holderFound = true;
+      ATH_MSG_VERBOSE("findOwners found holder owning the object " << *holder << " and index: " << idx );
+      break;
+    }
+  }
+  if ( !holderFound ) 
+    return true;
+
+  // tmp vec
+  //  std::vector<const T*> tmp;
+  for (; it != itEnd; ++it ) {
+    //    tmp.clear();
+    std::vector< TriggerElement::FeatureAccessHelper >::const_iterator featureAccessIt = (*it)-> getFeatureAccessHelpers().begin();
+    std::vector< TriggerElement::FeatureAccessHelper >::const_iterator featureAccessEnd = (*it)-> getFeatureAccessHelpers().end();
+
+    for ( ; featureAccessIt != featureAccessEnd ; ++featureAccessIt ) {
+      if ( featureAccessIt->getCLID() == clid &&
+	   featureAccessIt->getIndex().isSameOrWithin(&idx) ) {
+	owners.push_back(*it);
+	ATH_MSG_VERBOSE("findOwners while looking in TE(id): " << *it <<"(" << (*it)->getId() << ")" << " and access helper " << featureAccessIt->getIndex() << " found owner " );	
+	break;
+      }
+    }
+  }
+  return true;
+}
+
+template<class T>
+__attribute__((__used__))
+const std::string HLT::Navigation::getNextKey( const std::string& label ) {
+  CLID clid = ClassID_traits<T>::ID();
+  HLTNavDetails::Holder<T>* holder = getHolder<T>(label, nextSubTypeIndex(clid,label));
+  if (!holder) return ""; // should never happen, but who knows
+
+  return holder->getNextKey( );
+}
+
+template<class T>
+__attribute__((__used__))
+const std::string HLT::Navigation::getUniqueKey( const std::string& label ) {
+  CLID clid = ClassID_traits<T>::ID();
+  HLTNavDetails::Holder<T>* holder = getHolder<T>(label, nextSubTypeIndex(clid, label));
+  
+  if (!holder) return ""; // should never happen, but who knows
+
+  return holder->getUniqueKey( );
+}
+
+
+//EOF
+#endif // TRIGNAVIGATION_HLTNAVIGATION_ICC

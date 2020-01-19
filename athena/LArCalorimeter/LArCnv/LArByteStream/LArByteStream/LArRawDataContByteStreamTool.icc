@@ -1,0 +1,83 @@
+//Dear emacs, this is -*- c++ -*-
+
+/*
+  Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
+*/
+
+#ifndef LARBYTESTREAM_LARRAWDATACONTBYTESTREAMTOOL_ICC
+#define LARBYTESTREAM_LARRAWDATACONTBYTESTREAMTOOL_ICC
+
+//#include "LArRawEvent/LArRawChannelCollection.h"
+//#include "LArRecEvent/LArCellCollection.h"
+//#include "LArRawEvent/LArDigitContainer.h"
+
+
+template <class COLLECTION >
+bool LArRawDataContByteStreamTool::checkGainConsistency(const COLLECTION* coll)
+{typedef typename COLLECTION::const_iterator contIter;
+ contIter it=coll->begin();
+ contIter it_e=coll->end();
+ if (it==it_e) //empty container
+   return true;
+ int fixgain=(*it)->gain();
+ for (;it!=it_e;it++)
+   if (fixgain!=(*it)->gain())
+      return false;
+ return true;
+}
+
+
+// We read all avaliable data => Loop over all LAr-Subdetectors and all RODs
+// All the methods derivated from the template should be there
+// The Following collection types are included :
+// LArAccumulatedCalibDigit, LArAccumulatedDigit, LArCalibDigit, LArDigit,
+// LArFebHeader and LArRawChannel
+template <class COLLECTION >
+StatusCode LArRawDataContByteStreamTool::convert(const RawEvent* re, COLLECTION* coll, CaloGain::CaloGain gain)
+{ 
+	if (prepareRobIndex(re).isFailure()){
+          ATH_MSG_ERROR ( "Error in prepareRobIndex " );
+          return StatusCode::FAILURE;
+	}
+        std::map<eformat::SubDetectorGroup, std::vector<const uint32_t*> >::const_iterator it = m_robIndex.find(eformat::LAR);
+        if ( it != m_robIndex.end() ) {
+          const std::vector<const uint32_t*>& robs = (*it).second;
+	  std::vector<const uint32_t*>::const_iterator rob_add;
+          for(rob_add = robs.begin(); rob_add!=robs.end();++rob_add){
+            try {
+              OFFLINE_FRAGMENTS_NAMESPACE::PointerType p;
+	      OFFLINE_FRAGMENTS_NAMESPACE::ROBFragment robFrag(*rob_add);
+            
+	      if (!m_decoder->check_valid (&robFrag, msg())) {
+	        ATH_MSG_WARNING ( "Error reading bytestream event: "
+                                  << "Invalid ROB fragment for source ID " << robFrag.rod_source_id() );
+	        continue; //return StatusCode::FAILURE;
+	      }
+	      uint32_t n = robFrag.rod_ndata() ; 
+	      robFrag.rod_data(p); 
+	      if (n < 3) {
+	        ATH_MSG_WARNING ( "Error reading bytestream event: "
+                                  << "Empty ROD block (less than 3 words) for source ID " << robFrag.rod_source_id() );
+	        continue;
+	        //return StatusCode::FAILURE;
+	      }
+              ATH_MSG_DEBUG ( "Format Version Number of ROD-Data Block: " 
+                              << MSG::hex << robFrag.rod_version()
+                              << MSG::dec);
+              ATH_MSG_VERBOSE ( "Calling RodDecoder for source ID " << MSG::hex 
+                                << robFrag.rod_source_id() << MSG::dec );
+	      m_decoder->setRobFrag(&robFrag);
+	      m_decoder->fillCollection(p,n,*coll,gain); // ..and decode them.
+            }
+            catch (eformat::Issue& ex) {
+              ATH_MSG_WARNING ( " exception thrown by ROBFragment, badly corrupted event. Abort decoding " );
+             coll->clear();
+             break;
+            }
+    }//end if LAr SubDet or ROS event building
+  }//end of if empty
+  ATH_MSG_VERBOSE ( "End of LArDigitCnvTool. Container size=" << coll->size() );
+  return StatusCode::SUCCESS;
+}
+
+#endif

@@ -1,0 +1,329 @@
+//Dear emacs, this is -*- c++ -*-
+
+/*
+  Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
+*/
+
+
+#include "LArRawConditions/LArConditionsContainerBase.h"
+
+#include <iostream>
+#include <sstream>
+#include <string>
+
+template<class DATA>
+LArReadParamsFromFile<DATA>::LArReadParamsFromFile(const std::string& name, ISvcLocator* pSvcLocator): 
+  AthAlgorithm(name, pSvcLocator),
+  m_onlineHelper(0),
+  m_emId(0),
+  m_hecId(0),
+  m_fcalId(0),
+  m_larCablingSvc(0),
+  m_groupingType(LArConditionsContainerBase::SingleGroup),
+  m_useCalibLines(false),
+  m_dataclass(0)
+  
+{ 
+  // file name to be read
+  declareProperty("File",m_file="") ;
+  // choose whether use offline ID (default is online)
+  declareProperty("UseOfflineIdentifier",m_useOfflineIdentifier=false) ;
+  // assign grouping type (only for LArConditionsContainer-based classes)
+  declareProperty("GroupingType",m_groupingName="Unknown") ;
+  declareProperty("ChannelIdType",m_chIdType="UNKNOWN");
+  declareProperty("CustomKey",m_customKey="");
+}
+
+template <class DATA>
+LArReadParamsFromFile<DATA>::~LArReadParamsFromFile() 
+{}
+
+template <class DATA>
+StatusCode LArReadParamsFromFile<DATA>::initialize() {
+  ATH_MSG_DEBUG ( "in initialize" );
+
+  if ( m_groupingName == "Unknown" ) {
+    m_groupingType = LArConditionsContainerBase::Unknown ;
+  } else if ( m_groupingName == "SingleGroup" ) {
+    m_groupingType = LArConditionsContainerBase::SingleGroup ;
+  } else if ( m_groupingName == "SubDetectorGrouping" ) {
+    m_groupingType = LArConditionsContainerBase::SubDetectorGrouping ;
+  } else if ( m_groupingName == "FeedThroughGrouping" ) {
+    m_groupingType = LArConditionsContainerBase::FeedThroughGrouping ;
+  }  else if ( m_groupingName == "ExtendedFThGrouping" ) {
+    m_groupingType = LArConditionsContainerBase::ExtendedFTGrouping ;
+  } else if ( m_groupingName == "ExtendedSubDetGrouping" ) {
+    m_groupingType = LArConditionsContainerBase::ExtendedSubDetGrouping ;
+  } else {
+    ATH_MSG_ERROR ( "Grouping type " << m_groupingName << " is not foreseen!" );
+    ATH_MSG_ERROR ( "Only \"Unknown\", \"SingleGroup\", \"SubDetectorGrouping\", \"FeedThroughGrouping\" are allowed" );
+    return StatusCode::FAILURE ;
+  }
+
+  const CaloIdManager *caloIdMgr=CaloIdManager::instance() ;
+  m_emId   = caloIdMgr->getEM_ID();
+  m_hecId  = caloIdMgr->getHEC_ID();
+  m_fcalId = caloIdMgr->getFCAL_ID();
+  if (!m_emId) {
+    ATH_MSG_ERROR ( "Could not access lar EM ID helper" );
+    return StatusCode::FAILURE;
+  }
+  if (!m_hecId) {
+    ATH_MSG_ERROR ( "Could not access lar HEC ID helper" );
+    return StatusCode::FAILURE;
+  }
+  if (!m_fcalId) {
+    ATH_MSG_ERROR ( "Could not access lar FCAL ID helper" );
+    return StatusCode::FAILURE;
+  }
+
+  ATH_CHECK( detStore()->retrieve(m_onlineHelper, "LArOnlineID") );
+
+  ATH_CHECK( toolSvc()->retrieveTool("LArCablingService",m_larCablingSvc) );
+
+  if ( m_chIdType == std::string("UNKNOWN") ) {
+    // use jO specification (default=false) for m_useOfflineIdentifier 
+    // and default=false for m_useCalibLines
+    m_useCalibLines = false ;
+  } else if ( m_chIdType == std::string("OfflineID") ) {
+    m_useOfflineIdentifier = true ;
+    m_useCalibLines        = false ;
+  } else if ( m_chIdType == std::string("OnlineID") ) {
+    m_useOfflineIdentifier = false ;
+    m_useCalibLines        = false ;
+  } else if ( m_chIdType == std::string("OnlineCalibID") ) {
+    m_useOfflineIdentifier = false ;
+    m_useCalibLines        = true ;
+  } else {
+    ATH_MSG_ERROR ( "ChannelIdType=" << m_chIdType << " is not valid!" );
+    ATH_MSG_ERROR ( "Allowed options are: OfflineID, OnlineID, OnlineCalibID" );
+    return StatusCode::FAILURE ;
+  }
+
+  if( m_useOfflineIdentifier ) {
+    ATH_MSG_INFO ( "Reading parameters using *** offline identifiers ***" );
+  } else if ( m_useCalibLines ) {
+    ATH_MSG_INFO ( "Reading parameters for *** calibration lines ***" );
+  } else {
+    ATH_MSG_INFO ( "Reading parameters using *** online identifiers ***" );
+  }
+
+  return StatusCode::SUCCESS;
+}
+
+
+template <class DATA>
+StatusCode LArReadParamsFromFile<DATA>::stop() 
+{
+  ATH_MSG_DEBUG ( "in stop" );
+
+  if ( m_file == std::string("") ) {
+    ATH_MSG_ERROR ( "Input file name was not specified!" );
+    return StatusCode::FAILURE ;
+  }
+
+  m_dataclass = new DATA ;
+  if ( m_groupingType != LArConditionsContainerBase::Unknown ) {
+    m_dataclass->setGroupingType( static_cast<LArConditionsContainerBase::GroupingType>(m_groupingType) ) ;
+  }
+  ATH_CHECK( m_dataclass->initialize() );
+
+  std::string classname = LArParamsProperties::getClassName(m_dataclass) ;
+  std::string key       = LArParamsProperties::keyword( classname ) ;
+  if ( m_customKey != "") key = m_customKey;
+
+  ATH_CHECK(  readFile() );
+  ATH_MSG_INFO ( "Object " << classname << " successfully uploaded from file " << m_file );
+
+  ATH_CHECK( detStore()->record(m_dataclass,key) );
+  ATH_MSG_INFO ( "Object " << classname << " recorded into detStore with key " << key );
+
+  do_symLink(m_dataclass) ;
+  ATH_MSG_INFO ( "Object " << classname << " symLinked to its abstract interface" );
+
+  ATH_MSG_INFO ( "finished!" );
+  return StatusCode::SUCCESS;
+}// end stop-method.
+
+
+template <class DATA>
+StatusCode LArReadParamsFromFile<DATA>::readFile() {
+  // File format:
+  // for online ID:    barrel_ec  posneg  FT  slot  channel              parameters...
+  // for offline ID:   det  subdet  barrel_ec layer  region eta phi      parameters...
+  int det, subdet, barrel_ec, posneg, ft, slot, channel, region, layer, eta, phi ;
+  std::vector<float> pRead ;
+  HWIdentifier chID ;
+
+  std::ifstream f(m_file.c_str()) ; // open input file
+  if ( ! f.good() ) {
+    ATH_MSG_ERROR ( "Could not open file " << m_file << ", are you sure it exists??" );
+    return StatusCode::FAILURE ;
+  }
+  ATH_MSG_DEBUG ( "File " << m_file << " opened" );
+
+  unsigned nrec = 0 ;
+  unsigned npar = LArParamsProperties::numberOfParams(m_dataclass) ;
+  ATH_MSG_DEBUG ( "The file should contain " << npar << " parameters per record" );
+
+  while (1) { // read through the file records
+
+    if ( f.eof() )  break ;
+    std::string s ;
+    getline(f,s) ;
+    std::istringstream buffer(s) ;
+    ATH_MSG_VERBOSE ( "*** Record: '" << s << "'" );
+
+    if ( s == std::string("") ) continue ; // skip empty records
+
+    bool good_chID = true ;
+
+    if ( m_useOfflineIdentifier ) {  // get HWIdentifier from offline "coordinates"
+
+      buffer >> det ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'det' field for offline identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> subdet ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'subdet' field for offline identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> barrel_ec ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'barrel_ec' field for offline identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> layer ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'layer' field for offline identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> region ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'region' field for offline identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> eta ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'eta' field for offline identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> phi ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'phi' field for offline identifier" );
+	continue ; // skip and go to next record
+      }
+      ATH_MSG_VERBOSE ( "Det=" << det << " SubDet=" << subdet << " BarrelEC=" << barrel_ec 
+                        << " Sampling=" << layer << " Region=" << region << " Eta=" << eta << " Phi=" << phi );
+      good_chID = true ;
+      if ( det != 4 ) {
+	ATH_MSG_WARNING ( "Det=" << det << " is not LArCalorimeter -- cannot handle it!" );
+	good_chID = false ;
+      } else {
+	Identifier id ;
+	if ( subdet == 1 ) { // LArEM
+	  id = m_emId->channel_id(barrel_ec,layer,region,eta,phi) ;
+	  ATH_MSG_VERBOSE ( "LAr EM Identifier=" << id );
+	} else if ( subdet == 2 ) { // LArHEC
+	  id = m_hecId->channel_id(barrel_ec,layer,region,eta,phi) ;
+	  ATH_MSG_VERBOSE ( "LAr HEC Identifier=" << id );
+	} else if ( subdet == 3 ) { // LArFCAL
+	  // id = m_fcalId->channel_id(det,layer,region,eta,phi) ;
+	  // log << MSG::VERBOSE << "LAr FCAL Identifier=" << id << endreq ;
+	  ATH_MSG_WARNING ( "Subdet=" << subdet 
+                            << " is LArFCAL -- conversion to online channel not implemented yet!" );
+	  good_chID = false ;
+	} else {
+	  ATH_MSG_WARNING ( "Subdet=" << subdet << " is unknown -- cannot handle it!" );
+	  good_chID = false ;
+	}
+	if ( good_chID ) {
+	  try {
+	    chID = m_larCablingSvc->createSignalChannelID(id) ;
+	  } catch ( LArID_Exception & except ) {
+	    ATH_MSG_WARNING ( "Could not get HWId for offline Id " << id );
+	    good_chID = false ;
+	  }
+	}
+      }
+      if ( ! good_chID ) continue ; // skip and go to next record
+
+    } else {                           // get HWIdentifier from online "coordinates"
+
+      buffer >> barrel_ec ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'barrel_ec' field for online identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> posneg ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'posneg' field for online identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> ft ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'feedthrough' field for online identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> slot ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'slot' field for online identifier" );
+	continue ; // skip and go to next record
+      }
+      buffer >> channel ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "Could not read 'channel' field for online identifier" );
+	continue ; // skip and go to next record
+      }
+      if ( m_useCalibLines ) {
+	chID = m_onlineHelper->calib_channel_Id(barrel_ec,posneg,ft,slot,channel) ;
+      } else {
+	chID = m_onlineHelper->channel_Id(barrel_ec,posneg,ft,slot,channel) ;
+      }
+
+    }  // here the HWIdentifier is obtained!
+
+    if ( ! good_chID ) continue ; // skip and go to next record
+
+    //
+    // get parameters
+    //
+    pRead.resize(npar) ;
+    const float defaultValue = -999 ;
+    for ( unsigned i=0 ; i<npar ; i++ )  pRead[i] = defaultValue ;
+    for ( unsigned i=0 ; i<npar ; i++ ) {
+      //if ( buffer.eof() ) {
+      //log << MSG::DEBUG << "end-of-record reached when reading parameter " << i << " of channel " << chID.get_compact() << endreq ;
+      //break ;
+      //}
+      buffer >> pRead[i] ;
+      if ( buffer.fail() ) {
+	ATH_MSG_WARNING ( "failure when reading parameter " << i << " of channel " << chID.get_compact() );
+	break ;
+      }
+    }
+    // store into parameters vector
+    msg() << MSG::VERBOSE << "read ch=" << chID.get_compact() ;
+    for ( unsigned i=0 ; i<npar ; i++ )  msg() << " par[" << i << "]=" << pRead[i] ;
+    msg() << endreq ;
+    for ( unsigned gain=0 ; gain<3 ; gain++ ) {
+      try {
+	StatusCode sc = set(m_dataclass,chID,gain,pRead) ;
+	if ( sc.isFailure() ) {
+	  ATH_MSG_WARNING ( "Could not set parameters for ch=" << chID.get_compact() << " gain=" << gain );
+	}
+      } catch ( LArID_Exception & except ) {
+	ATH_MSG_WARNING ( "Bad HWId " << chID );
+	good_chID = false ;
+      }
+    }
+    
+    nrec ++ ;
+    
+  }  // end of while(1) i.e. the loop through all file records
+  
+  ATH_MSG_DEBUG ( "end of file reached, read " << nrec << " records" );
+  return StatusCode::SUCCESS ;
+}

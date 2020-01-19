@@ -1,0 +1,31 @@
+// emacs: this is -*- c++ -*-
+
+UseMatcher = "DeltaRZ";
+Matcher_deta = 0.02;
+Matcher_dphi = 0.03;
+Matcher_dzed = 5;
+
+#include "TIDAdata_cuts.dat"
+
+
+refChain = "Truth";
+//refChain = "Offline";
+//refChain = "Electrons";
+//refChain = "Muons";
+//refChain = "Taus";
+
+
+MinVertices = 0;
+
+
+#include "TIDAdata_chains.dat"
+
+
+InitialiseFirstEvent = 1;
+
+outputFile = "data-output.root";
+DataFiles = { "TrkNtuple-0000.root"};
+//DataSets = {"./"}
+
+
+#include "TIDAbeam.dat"

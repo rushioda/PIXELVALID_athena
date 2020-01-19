@@ -1,0 +1,6 @@
+<lcgdict>
+   <class name="LArG4TBPosOptions"/>
+   <class name="LArGeoTBGeometricOptions"/>
+   <class name="LArGeoTBH1GeoOptions"/>
+   <class name="LArGeoTB2004Options"/>
+</lcgdict>

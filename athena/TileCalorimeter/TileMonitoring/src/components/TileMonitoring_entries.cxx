@@ -1,0 +1,73 @@
+#include "GaudiKernel/DeclareFactoryEntries.h"
+#include "TileMonitoring/TilePaterMonTool.h"
+#include "TileMonitoring/TileFatherMonTool.h"
+#include "TileMonitoring/TileCellMonTool.h"
+#include "TileMonitoring/TileTowerMonTool.h"
+#include "TileMonitoring/TileClusterMonTool.h"
+#include "TileMonitoring/TileMuIdMonTool.h"
+#include "TileMonitoring/TileL2MonTool.h"
+#include "TileMonitoring/TileMuonFitMonTool.h"
+#include "TileMonitoring/TileDigitsMonTool.h"
+#include "TileMonitoring/TileRawChannelMonTool.h"
+#include "TileMonitoring/TileMBTSMonTool.h"
+#include "TileMonitoring/TileDQFragMonTool.h"
+#include "TileMonitoring/TileDQFragLWMonTool.h"
+#include "TileMonitoring/TileRODMonTool.h"
+#include "TileMonitoring/TileJetMonTool.h"
+#include "TileMonitoring/TileDigiNoiseMonTool.h"
+#include "TileMonitoring/TileTMDBDigitsMonTool.h"
+#include "TileMonitoring/TileTMDBRawChannelMonTool.h"
+#include "TileMonitoring/TileCellNoiseMonTool.h"
+#include "TileMonitoring/TileRawChannelTimeMonTool.h"
+#include "TileMonitoring/TileRawChannelNoiseMonTool.h"
+#include "TileMonitoring/TileTBBeamMonTool.h"
+#include "TileMonitoring/TileTBMonTool.h"
+#include "TileMonitoring/TileTBCellMonTool.h"
+
+DECLARE_TOOL_FACTORY(TileFatherMonTool )
+DECLARE_TOOL_FACTORY(TilePaterMonTool )
+DECLARE_TOOL_FACTORY(TileCellMonTool )
+DECLARE_TOOL_FACTORY(TileTowerMonTool )
+DECLARE_TOOL_FACTORY(TileClusterMonTool )
+DECLARE_TOOL_FACTORY(TileMuIdMonTool )
+DECLARE_TOOL_FACTORY(TileL2MonTool )
+DECLARE_TOOL_FACTORY(TileMuonFitMonTool )
+DECLARE_TOOL_FACTORY(TileDigitsMonTool )
+DECLARE_TOOL_FACTORY(TileRawChannelMonTool )
+DECLARE_TOOL_FACTORY(TileMBTSMonTool )
+DECLARE_TOOL_FACTORY(TileDQFragMonTool )
+DECLARE_TOOL_FACTORY(TileDQFragLWMonTool )
+DECLARE_TOOL_FACTORY(TileRODMonTool )
+DECLARE_TOOL_FACTORY(TileJetMonTool )
+DECLARE_TOOL_FACTORY(TileDigiNoiseMonTool )
+DECLARE_TOOL_FACTORY(TileTMDBDigitsMonTool )
+DECLARE_TOOL_FACTORY(TileTMDBRawChannelMonTool )
+DECLARE_TOOL_FACTORY(TileCellNoiseMonTool )
+DECLARE_TOOL_FACTORY(TileRawChannelTimeMonTool )
+DECLARE_TOOL_FACTORY(TileRawChannelNoiseMonTool )
+DECLARE_TOOL_FACTORY(TileTBBeamMonTool )
+DECLARE_TOOL_FACTORY(TileTBMonTool )
+DECLARE_TOOL_FACTORY(TileTBCellMonTool )
+
+DECLARE_FACTORY_ENTRIES(TileMonitoring) {
+  DECLARE_ALGTOOL(TileFatherMonTool )
+  DECLARE_ALGTOOL(TilePaterMonTool )
+  DECLARE_ALGTOOL(TileCellMonTool )
+  DECLARE_ALGTOOL(TileTowerMonTool )
+  DECLARE_ALGTOOL(TileClusterMonTool )
+  DECLARE_ALGTOOL(TileMuIdMonTool )
+  DECLARE_ALGTOOL(TileL2MonTool )
+  DECLARE_ALGTOOL(TileMuonFitMonTool )
+  DECLARE_ALGTOOL(TileDigitsMonTool )
+  DECLARE_ALGTOOL(TileRawChannelMonTool )
+  DECLARE_ALGTOOL(TileMBTSMonTool )
+  DECLARE_ALGTOOL(TileDQFragMonTool )
+  DECLARE_ALGTOOL(TileRODMonTool )
+  DECLARE_ALGTOOL(TileJetMonTool )
+  DECLARE_ALGTOOL(TileDigiNoiseMonTool )
+  DECLARE_ALGTOOL(TileTMDBDigitsMonTool )
+  DECLARE_ALGTOOL(TileTMDBRawChannelMonTool )
+  DECLARE_ALGTOOL(TileCellNoiseMonTool )
+  DECLARE_ALGTOOL(TileRawChannelTimeMonTool )
+  DECLARE_ALGTOOL(TileRawChannelNoiseMonTool )
+}

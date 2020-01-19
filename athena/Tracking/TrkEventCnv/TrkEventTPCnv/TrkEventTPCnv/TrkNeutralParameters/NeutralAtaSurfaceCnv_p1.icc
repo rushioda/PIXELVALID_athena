@@ -1,0 +1,51 @@
+/*
+  Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
+*/
+
+#include "TrkEventTPCnv/TrkParameters/mungeZeroQOverP.h"
+
+
+//-----------------------------------------------------------------------------
+//
+// file:   NeutralAtaSurfaceCnv_p1.icc
+//
+//-----------------------------------------------------------------------------
+
+template< class SURFACE_CNV, class ATA_SURFACE >
+void
+NeutralAtaSurfaceCnv_p1< SURFACE_CNV, ATA_SURFACE >::
+persToTrans( const Trk::AtaSurface_p1 *persObj, ATA_SURFACE *transObj, MsgStream &log )
+{
+   this->fillTransFromPStore( &m_paramCnv, persObj->m_parameters, transObj, log );
+
+   // Preserve previous behavior of tp converters.
+   bool waszero = false;
+   auto parms = transObj->parameters();
+   if (parms[Trk::qOverP] == 0) {
+     parms[Trk::qOverP] = 1;
+     waszero = true;
+   }
+
+   ITPConverterFor<Trk::Surface>* surfaceCnv=0;
+   const Trk::Surface* temp = this->createTransFromPStore( &surfaceCnv, persObj->m_assocSurface, log );
+   DetElementSurfaceCnv_p1* detElCnv = dynamic_cast<DetElementSurfaceCnv_p1*>(surfaceCnv); 
+   if (detElCnv) {
+       // have a DetElementSurface
+       temp = detElCnv->createSurface(log);
+   }
+   
+   Trk::SurfaceUniquePtrT<const typename SURFACE_CNV::Trans_t> surf
+     (static_cast<const typename SURFACE_CNV::Trans_t*>(temp));
+   *transObj = ATA_SURFACE (parms, std::move(surf));
+   if (waszero)
+     TrkEventTPCnv::mungeZeroQOverP (*transObj);
+}
+
+template< class SURFACE_CNV, class ATA_SURFACE >
+void
+NeutralAtaSurfaceCnv_p1< SURFACE_CNV, ATA_SURFACE >::
+transToPers( const ATA_SURFACE * /**transObj*/, Trk::AtaSurface_p1 * /**persObj*/, MsgStream & /**log*/ )
+{
+  throw std::runtime_error("NeutralAtaSurfaceCnv_p1::transToPers is deprecated!");
+}
+

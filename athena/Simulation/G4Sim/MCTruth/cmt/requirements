@@ -1,0 +1,22 @@
+package MCTruth
+
+public
+use AtlasPolicy  AtlasPolicy-*
+
+use AtlasHepMC   AtlasHepMC-*   External
+use CLIDSvc      CLIDSvc-*      Control
+use Geant4       Geant4-*       External
+
+private
+use SimHelpers   SimHelpers-*   Simulation/G4Sim
+end_private
+
+include_dirs "$(MCTruth_root)"
+
+library MCTruth ../src/*.cxx
+apply_pattern installed_library
+
+#private
+# use this to enable debugging for this package
+#macro cppdebugflags '$(cppdebugflags_s)'
+#macro_remove componentshr_linkopts "-Wl,-s"

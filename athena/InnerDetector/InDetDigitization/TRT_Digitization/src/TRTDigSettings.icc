@@ -1,0 +1,251 @@
+/*
+  Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
+*/
+
+/////////////////////////////////////////////////////////////////
+//                                                             //
+// File: TRTDigSettings.icc                                    //
+//                                                             //
+// Author: Thomas Kittelmann <kittel@nbi.dk>                   //
+//                                                             //
+// First version: April 2005. Rewritten November 2005.         //
+//                                                             //
+// Class containing parameters and settings mainly used by TRT //
+// digitization.                                               //
+//                                                             //
+/////////////////////////////////////////////////////////////////
+
+inline int TRTDigSettings::digVers() const {
+  return m_digversion;
+}
+inline double TRTDigSettings::attenuationLength() const {
+  return m_attenuationLength;
+}
+inline bool TRTDigSettings::useAttenuation() const {
+  return m_useAttenuation;
+}
+inline bool TRTDigSettings::useMagneticFieldMap() const {
+  return m_useMagneticFieldMap;
+}
+inline unsigned int TRTDigSettings::digVersion() const {
+  return m_digversion;
+}
+inline double TRTDigSettings::ionisationPotential(int strawGasType) const {
+  if      (strawGasType==0) return m_ionisationPotential;
+  else if (strawGasType==1) return m_ionisationPotentialKrypton;
+  else if (strawGasType==2) return m_ionisationPotentialArgon;
+  else return m_ionisationPotential; // should not happen
+}
+inline double TRTDigSettings::smearingFactor(int strawGasType) const {
+  if      (strawGasType==0) return m_smearingFactor;
+  else if (strawGasType==1) return m_smearingFactorKrypton;
+  else if (strawGasType==2) return m_smearingFactorArgon;
+  else return m_smearingFactor; // should not happen
+}
+inline double TRTDigSettings::timeInterval() const {
+  return m_timeInterval;
+}
+inline unsigned int TRTDigSettings::numberOfBins() const {
+  return m_numberOfBins;
+}
+inline unsigned int TRTDigSettings::numberOfBinsInEncodingBin() const {
+  return m_numberOfBinsInEncodingBin;
+}
+inline double TRTDigSettings::minDiscriminatorWidth() const {
+  return m_minDiscriminatorWidth;
+}
+inline double TRTDigSettings::discriminatorSettlingTime() const {
+  return m_discriminatorSettlingTime;
+}
+inline double TRTDigSettings::discriminatorDeadTime() const {
+  return m_discriminatorDeadTime;
+}
+inline double TRTDigSettings::overallT0Shift() const {
+  return m_overallT0Shift;
+}
+inline double TRTDigSettings::overallT0ShiftShortBarrel() const {
+  return m_overallT0ShiftShortBarrel;
+}
+inline double TRTDigSettings::distanceToTimeFactor() const {
+  return m_distanceToTimeFactor; 
+}
+inline double TRTDigSettings::signalPropagationSpeed() const {
+  return m_signalPropagationSpeed;
+}
+inline double TRTDigSettings::lowThresholdBar(int strawGasType) const {
+  if      (strawGasType==0) return m_lowThresholdBar;
+  else if (strawGasType==1) return m_lowThresholdBarKrypton;
+  else if (strawGasType==2) return m_lowThresholdBarArgon;
+  else return m_lowThresholdBar; // should not happen
+}
+inline double TRTDigSettings::lowThresholdEC(int strawGasType) const {
+  if      (strawGasType==0) return m_lowThresholdEC;
+  else if (strawGasType==1) return m_lowThresholdECKrypton;
+  else if (strawGasType==2) return m_lowThresholdECArgon;
+  else return m_lowThresholdEC; // should not happen
+}
+inline double TRTDigSettings::highThresholdBarShort(int strawGasType) const {
+  if      (strawGasType==0) return m_highThresholdBarShort;
+  else if (strawGasType==1) return m_highThresholdBarShortKrypton;
+  else if (strawGasType==2) return m_highThresholdBarShortArgon;
+  else return m_highThresholdBarShort; // should not happen
+}
+inline double TRTDigSettings::highThresholdBarLong(int strawGasType) const {
+  if      (strawGasType==0) return m_highThresholdBarLong;
+  else if (strawGasType==1) return m_highThresholdBarLongKrypton;
+  else if (strawGasType==2) return m_highThresholdBarLongArgon;
+  else return m_highThresholdBarLong; // should not happen
+}
+inline double TRTDigSettings::highThresholdECAwheels(int strawGasType) const {
+  if      (strawGasType==0) return m_highThresholdECAwheels;
+  else if (strawGasType==1) return m_highThresholdECAwheelsKrypton;
+  else if (strawGasType==2) return m_highThresholdECAwheelsArgon;
+  else return m_highThresholdECAwheels; // should not happen
+}
+inline double TRTDigSettings::highThresholdECBwheels(int strawGasType) const {
+  if      (strawGasType==0) return m_highThresholdECBwheels;
+  else if (strawGasType==1) return m_highThresholdECBwheelsKrypton;
+  else if (strawGasType==2) return m_highThresholdECBwheelsArgon;
+  else return m_highThresholdECBwheels; // should not happen
+}
+inline double TRTDigSettings::trEfficiencyBarrel(int strawGasType) const {
+  if      (strawGasType==0) return m_trEfficiencyBarrel;
+  else if (strawGasType==1) return m_trEfficiencyBarrelKrypton;
+  else if (strawGasType==2) return m_trEfficiencyBarrelArgon;
+  else return m_trEfficiencyBarrel; // should not happen
+}
+inline double TRTDigSettings::trEfficiencyEndCapA(int strawGasType) const {
+  if      (strawGasType==0) return m_trEfficiencyEndCapA;
+  else if (strawGasType==1) return m_trEfficiencyEndCapAKrypton;
+  else if (strawGasType==2) return m_trEfficiencyEndCapAArgon;
+  else return m_trEfficiencyEndCapA; // should not happen
+}
+inline double TRTDigSettings::trEfficiencyEndCapB(int strawGasType) const {
+  if      (strawGasType==0) return m_trEfficiencyEndCapB;
+  else if (strawGasType==1) return m_trEfficiencyEndCapBKrypton;
+  else if (strawGasType==2) return m_trEfficiencyEndCapBArgon;
+  else return m_trEfficiencyEndCapB; // should not happen
+}
+inline int TRTDigSettings::htT0shiftBarShort() const {
+  return m_htT0shiftBarShort;
+}
+inline int TRTDigSettings::htT0shiftBarLong() const {
+  return m_htT0shiftBarLong;
+}
+inline int TRTDigSettings::htT0shiftECAwheels() const {
+  return m_htT0shiftECAwheels;
+}
+inline int TRTDigSettings::htT0shiftECBwheels() const {
+  return m_htT0shiftECBwheels;
+}
+inline double TRTDigSettings::innerRadiusOfStraw() const {
+  return m_innerRadiusOfStraw;
+}
+inline double TRTDigSettings::strawLengthBarrel() const {
+  return m_strawLengthBarrel;
+}
+inline double TRTDigSettings::innerRadiusEndcap() const {
+  return m_innerRadiusEndcap;
+}
+inline double TRTDigSettings::outerRadiusEndcap() const {
+  return m_outerRadiusEndcap;
+}
+inline double TRTDigSettings::outerRadiusOfWire() const {
+  return m_outerRadiusOfWire;
+}
+inline double TRTDigSettings::lengthOfDeadRegion() const {
+  return m_lengthOfDeadRegion;
+}
+inline bool TRTDigSettings::timeCorrection() const {
+  return m_timeCorrection;
+}
+inline unsigned int TRTDigSettings::numberOfCrossingsBeforeMain() const {
+  return m_numberOfCrossingsBeforeMain;
+}
+inline unsigned int TRTDigSettings::cosmicFlag() const {
+  return m_cosmicFlag;
+}
+inline bool TRTDigSettings::isCTB() const {
+  return m_isCTB;
+}
+inline bool TRTDigSettings::isOverlay() const {
+  return m_isOverlay;
+}
+inline bool TRTDigSettings::killEndCap() const {
+  return m_killEndCap;
+}
+inline bool TRTDigSettings::killBarrel() const {
+  return m_killBarrel;
+}
+inline double TRTDigSettings::jitterTimeOffset() const {
+  return m_jitterTimeOffset;
+}
+inline bool TRTDigSettings::doCosmicTimingPit() const {
+  return m_doCosmicTimingPit;
+}
+inline bool TRTDigSettings::doCrosstalk() const {
+  return m_doCrosstalk;
+}
+inline double TRTDigSettings::pileUpSDOsMinEkin() const {
+  return m_pileUpSDOsMinEkin;
+}
+inline double TRTDigSettings::maxVertexDisplacement() const {
+  return m_maxVertexDisplacement;
+}
+inline double TRTDigSettings::timeOffsetCalcVertexX() const {
+  return m_timeOffsetCalcVertexX;
+}
+inline double TRTDigSettings::timeOffsetCalcVertexY() const {
+  return m_timeOffsetCalcVertexY;
+}
+inline double TRTDigSettings::timeOffsetCalcVertexZ() const {
+  return m_timeOffsetCalcVertexZ;
+}
+inline bool TRTDigSettings::electronicsAreAtFarEnd() const {
+  return m_electronicsAreAtFarEnd;
+}
+inline bool TRTDigSettings::timeshiftsSymmetricForPhiSectors() const {
+  return m_timeshiftsSymmetricForPhiSectors;
+}
+inline bool TRTDigSettings::noiseInUnhitStraws() const {
+  return m_noiseInUnhitStraws;
+}
+inline bool TRTDigSettings::noiseInSimhits() const {
+  return m_noiseInSimhits;
+}
+inline double TRTDigSettings::fastElectronicsNoisePulseDistance() const {
+  return m_fastElectronicsNoisePulseDistance;
+}
+inline double TRTDigSettings::slowPeriodicNoisePulseDistance() const {
+  return m_slowPeriodicNoisePulseDistance;
+}
+inline double TRTDigSettings::slowPeriodicNoisePulseFraction() const {
+  return m_slowPeriodicNoisePulseFraction;
+}
+inline double TRTDigSettings::averageNoiseLevel() const {
+  return m_averageNoiseLevel;
+}
+inline double TRTDigSettings::crossTalkNoiseLevel() const {
+  return  m_crosstalkNoiseLevel;
+}
+inline double TRTDigSettings::crossTalkNoiseLevelOtherEnd() const {
+  return  m_crosstalkNoiseLevelOtherEnd;
+}
+inline double TRTDigSettings::relativeLowThresholdFluctuation() const {
+  return m_relativeLowThresholdFluctuation;
+}
+inline double TRTDigSettings::relativeHighThresholdFluctuation() const {
+  return m_relativeHighThresholdFluctuation;
+}
+inline double TRTDigSettings::solenoidFieldStrength() const {
+  return m_solenoidFieldStrength;
+}
+inline unsigned int TRTDigSettings::storeSDO() const {
+  return m_storeSDO;
+}
+inline bool TRTDigSettings::getT0FromData() const {
+  return  m_getT0FromData;
+}
+inline double TRTDigSettings::TrtRangeCutProperty() const {
+  return m_trtRangeCutProperty;
+}

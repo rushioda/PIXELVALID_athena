@@ -1,0 +1,28 @@
+<!-- $Id: selection.xml 615735 2014-09-09 10:13:08Z krasznaa $ -->
+<lcgdict>
+
+
+   <class name="xAOD::EventShape_v1"
+          id="E06E8747-7C16-4BBA-B648-68F64BA70B7D" >
+   </class>
+  <class name="xAOD::EventShapeAuxInfo_v1"
+         id="7C9459AC-B89C-43A1-A57A-FF035EAA5D81" />
+
+
+   <!-- Custom streamer for the event format class: -->
+   <read sourceClass="xAOD::EventShape_v1" version="[1-]"
+         targetClass="xAOD::EventShape_v1"
+         source="" target="" >
+      <![CDATA[
+         newObj->setStore( ( SG::IAuxStore* ) 0 );
+      ]]>
+   </read>
+
+   <!-- Suppress the unwanted classes found by ROOT 6. -->
+  <!-- Hopefully we can remove these extra lines at one point... -->
+  <exclusion>
+    <class name="SG::IConstAuxStore" />
+    <class name="DataLink<SG::IConstAuxStore>" />
+  </exclusion>
+
+</lcgdict>

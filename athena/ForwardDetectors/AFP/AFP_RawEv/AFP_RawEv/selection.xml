@@ -1,0 +1,14 @@
+<lcgdict>
+  <class name="AFP_RawContainer" id = "9942A27B-F44A-4313-8723-4F817A350F7D"/>
+
+  <class name="AFP_SiRawCollection" />
+  <class name="std::list<AFP_SiRawCollection*>" />
+  <class name="std::list<AFP_SiRawData>" />
+  <class name="AFP_SiRawData" />
+  
+  <class name="AFP_ToFRawCollection" />
+  <class name="std::list<AFP_ToFRawCollection*>" />
+  <class name="std::list<AFP_ToFRawData>" />
+  <class name="AFP_ToFRawData" />
+</lcgdict>
+

@@ -1,0 +1,131 @@
+/*
+  Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
+*/
+
+//Dear emacs, this is -*-c++-*-
+
+template<class CONDITIONSCONTAINER>
+LArCalibCopyAlg<CONDITIONSCONTAINER>::LArCalibCopyAlg (const std::string& name, ISvcLocator* pSvcLocator) : 
+  AthAlgorithm(name,pSvcLocator),
+  m_groupingType("ExtendedSubDetector"),
+  m_useCorrChannel(true)
+ {		
+  declareProperty("GroupingType",    m_groupingType); 	
+  declareProperty("InputKey",        m_inputName); 	
+  declareProperty("OutputKey",       m_outputName);
+  declareProperty("UseCorrChannels", m_useCorrChannel,
+		  "True: Use separate correction COOL channel, False: Correction + data in the same channel");
+
+}
+
+template<class CONDITIONSCONTAINER>
+LArCalibCopyAlg<CONDITIONSCONTAINER>::~LArCalibCopyAlg() {
+}
+
+
+template<class CONDITIONSCONTAINER>
+StatusCode LArCalibCopyAlg<CONDITIONSCONTAINER>::initialize() {
+  //Block correction application
+  bool setFlag =   LArConditionsContainerBase::applyCorrectionsAtInit(true, false);
+  ATH_MSG_INFO ( "LArConditionsContainerBase::applyCorrectionsAtInit set to " << setFlag );
+
+  return StatusCode::SUCCESS;
+}
+
+
+template<class CONDITIONSCONTAINER>
+StatusCode LArCalibCopyAlg<CONDITIONSCONTAINER>::stop() {
+  ATH_MSG_INFO ( "Entering LArCalibCopyAlg" );
+
+  const CONDITIONSCONTAINER* input = nullptr;
+  ATH_CHECK( detStore()->retrieve(input,m_inputName) );
+
+  CONDITIONSCONTAINER* output=new CONDITIONSCONTAINER();
+  ATH_CHECK( output->setGroupingType(m_groupingType,(msg())) );
+  ATH_CHECK( output->initialize() );
+  
+  ATH_CHECK( detStore()->record(output,m_outputName) );
+
+  //Make symlink ....
+  ATH_CHECK( setSymlink(output) );
+   
+  ATH_MSG_INFO ( "Loaded input container " << m_inputName 
+                 << ", write to new container " << m_outputName );
+
+
+  //Start copying data ...
+
+  unsigned nDataChans=0;
+
+  for (unsigned igain=CaloGain::LARHIGHGAIN;igain<CaloGain::LARNGAIN ; ++igain ) {
+    CONTIT it=input->begin(igain);
+    CONTIT it_e=input->end(igain);
+    for (;it!=it_e;it++) {
+      const HWIdentifier chid = it.channelId();
+      const LArCondObj& payload=*it;
+      output->setPdata(chid,payload,igain);
+      ++nDataChans;
+    }//end loop over channels
+
+  } // end loop over gains
+  
+  //Same with correction channels:
+  unsigned nCorrChans=0;
+  for ( unsigned igain=CaloGain::LARHIGHGAIN;igain<CaloGain::LARNGAIN ; ++igain ) {
+    CORRIT it=input->undoCorrBegin(igain);
+    CORRIT it_e=input->undoCorrEnd(igain);
+    for (;it!=it_e;it++) {
+      const HWIdentifier chid(it->first);
+      const LArCondObj& payload=it->second;
+      ATH_CHECK( output->insertCorrection(chid,payload,igain,m_useCorrChannel) );
+    } // end loop over channels
+    ++nCorrChans;
+  } //end loop over gains
+
+
+ATH_MSG_INFO ( "Copied " << nDataChans << " data channels and " << nCorrChans << " correction channels from container '" 
+               << m_inputName << "' to container '" << m_outputName << "'" );
+
+  return StatusCode::SUCCESS;
+}
+
+
+template<class CONDITIONSCONTAINER>
+StatusCode  LArCalibCopyAlg<CONDITIONSCONTAINER>::setSymlink(const LArRampComplete* ramp) const {
+  ATH_CHECK( detStore()->symLink(ramp, (ILArRamp*)ramp) );
+  return StatusCode::SUCCESS;
+}
+
+template<class CONDITIONSCONTAINER>
+StatusCode  LArCalibCopyAlg<CONDITIONSCONTAINER>::setSymlink(const LArPedestalComplete* pedestal) const {
+  ATH_CHECK( detStore()->symLink(pedestal, (ILArPedestal*)pedestal) );
+  return StatusCode::SUCCESS;
+}
+
+template<class CONDITIONSCONTAINER>
+StatusCode  LArCalibCopyAlg<CONDITIONSCONTAINER>::setSymlink(const LArDAC2uAMC* obj) const {
+  ATH_CHECK( detStore()->symLink(obj, (ILArDAC2uA*)obj) );
+  ATH_MSG_INFO ( "Successfully symlinked LArDAC2uAMC to ILArDAC2uA" );
+  return StatusCode::SUCCESS;
+}
+
+template<class CONDITIONSCONTAINER>
+StatusCode  LArCalibCopyAlg<CONDITIONSCONTAINER>::setSymlink(const LArTdriftComplete* obj) const {
+  ATH_CHECK( detStore()->symLink(obj, (ILArTdrift*)obj) );
+  ATH_MSG_INFO ( "Successfully symlinked LArTdriftComplete to ILArTdrift" );
+  return StatusCode::SUCCESS;
+}
+
+template<class CONDITIONSCONTAINER>
+StatusCode  LArCalibCopyAlg<CONDITIONSCONTAINER>::setSymlink(const LArOFCComplete* ofc) const {
+  ATH_CHECK ( detStore()->symLink(ofc, (ILArOFC*)ofc) );
+  return StatusCode::SUCCESS;
+}
+
+
+template<class CONDITIONSCONTAINER>
+StatusCode  LArCalibCopyAlg<CONDITIONSCONTAINER>::setSymlink(const LArMphysOverMcalComplete* mpmc) const {
+  ATH_CHECK( detStore()->symLink(mpmc, (ILArMphysOverMcal*)mpmc) );
+  return StatusCode::SUCCESS;
+}
+

@@ -1,0 +1,70 @@
+// Dear emacs, this is -*- c++ -*-
+// $Id: ToolHandleArray.icc 802972 2017-04-15 18:13:17Z krumnack $
+#ifndef ASGTOOLS_TOOLHANDLEARRAY_ICC
+#define ASGTOOLS_TOOLHANDLEARRAY_ICC
+
+template< class T >
+ToolHandleArray< T >::ToolHandleArray()
+   : std::vector< ToolHandle< T > >() {
+
+}
+
+#if __cplusplus >= 201100
+
+template< class T >
+ToolHandleArray< T >::
+ToolHandleArray( const std::initializer_list< ToolHandle< T > >& l )
+   : std::vector< ToolHandle< T > >( l ) {
+
+}
+
+template< class T >
+ToolHandleArray< T >::
+ToolHandleArray( const std::initializer_list< std::string >& l )
+   : std::vector< ToolHandle< T > >() {
+
+   // Create ToolHandle objects from all the names:
+   for( auto name : l ) {
+      this->push_back( ToolHandle< T >( name ) );
+   }
+}
+
+#endif // C++11
+
+template< class T >
+StatusCode ToolHandleArray< T >::retrieve() const {
+
+   // Loop over all the elements:
+   typename ToolHandleArray< T >::const_iterator itr = this->begin();
+   typename ToolHandleArray< T >::const_iterator end = this->end();
+   for( ; itr != end; ++itr ) {
+      if( itr->retrieve().isFailure() ) {
+         return StatusCode::FAILURE;
+      }
+   }
+
+   // Return gracefully:
+   return StatusCode::SUCCESS;
+}
+
+namespace asg
+{
+  namespace detail
+  {
+    template<typename T> struct GetStringHelper;
+
+    template<typename T> struct GetStringHelper<ToolHandleArray<T> >
+      : public GetStringHelper<std::vector<ToolHandle<T> > >
+    {
+    };
+
+    template<typename T> struct SetStringHelper;
+
+    template<typename T> struct SetStringHelper<ToolHandleArray<T> >
+      : public SetStringHelper<std::vector<ToolHandle<T> > >
+    {
+    };
+  }
+}
+
+#endif // ASGTOOLS_TOOLHANDLEARRAY_ICC

@@ -1,0 +1,4 @@
+This is the ATLAS track object, used to represent charged particles within ATLAS.
+
+See the doxygen documentation for more details, or look here:
+https://twiki.cern.ch/twiki/bin/view/AtlasComputing/CommonTrackingSoftware

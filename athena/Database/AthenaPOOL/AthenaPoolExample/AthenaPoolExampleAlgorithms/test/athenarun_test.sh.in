@@ -1,0 +1,35 @@
+#!/bin/bash 
+# 
+# $Id: athenarun_test.sh.in 740489 2016-04-15 09:17:00Z krasznaa $ 
+# 
+# This script template is used to create the scripts for the package that 
+# executes its integration tests. 
+# 
+ 
+# Transmit errors: 
+#set -e 
+
+read -d '' II <<EOF
+s/0\\\\{8\\\\}-0\\\\{4\\\\}-0\\\\{4\\\\}-0\\\\{4\\\\}-0\\\\{12\\\\}/!!!!/g
+s/[0-9A-F]\\\\{8\\\\}-[0-9A-F]\\\\{4\\\\}-[0-9A-F]\\\\{4\\\\}-[0-9A-F]\\\\{4\\\\}-[0-9A-F]\\\\{12\\\\}/????/g
+s/TTree [0-9]\\\\{3\\\\}[0-9]*/TTree ????/g
+s/^.*Py:Athena /Athena    /g
+s/fffffffff/f/g
+s/000000000/0/g
+s/INFO CLID = 222376821, key = Stream[12]/INFO CLID = 222376821, key = StreamX/g
+s/0x[0-9a-f]\\\\{8\\\\}/0x????/g
+EOF
+
+# Ordering sensitivities
+PP="Skipping"
+PP="$PP|using release"
+PP="$PP|Debug endTransaction:"
+PP="$PP|Deaccess DbContainer|RootDatabase.close Debug I/O|Database being retired"
+PP="$PP|^CoreDumpSvc          INFO Handling signals"
+PP="$PP|File version:"
+PP="$PP|ReadData             INFO CollectionMetadata, key = UnixTimestamp, value = "
+PP="$PP|^$"
+PP="$PP|Fd:"
+
+@toExecute@ | sed -e "$II"| egrep -v "$PP"
+

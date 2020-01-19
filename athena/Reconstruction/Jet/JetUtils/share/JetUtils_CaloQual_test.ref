@@ -1,0 +1,42 @@
+ cluster e=26832.6 eta=-0.92739  sig=56.6167
+ cluster e=21128.1 eta=-0.974543  sig=47.631
+ cluster e=16134 eta=0.640434  sig=64.9049
+ jet  e=87080.7 eta=0.653037
+ jet  e=86298.1 eta=-0.925534
+ jet  e=58734.7 eta=0.238763
+ cluster e=737384 eta=4.28676  sig=12.0953
+ cluster e=440605 eta=4.06765  sig=9.20953
+ cluster e=380991 eta=-4.09602  sig=8.56223
+ jet  e=109837 eta=-3.04955
+ jet  e=193480 eta=-3.12222
+ jet  e=29843.6 eta=-1.00689
+nLeadCell = 7
+ootFrac = 0
+avgLArQF = 63.6055
+hecQual = 0
+negE = -3616.2
+nLeadCell = 4
+ootFrac = 0
+avgLArQF = 53.7166
+hecQual = 0
+negE = -3395.96
+nLeadCell = 9
+ootFrac = 0.0929392
+avgLArQF = 87.5256
+hecQual = 0
+negE = -5163.76
+nLeadCell = 6
+ootFrac = 0.00847961
+avgLArQF = 523.398
+hecQual = 0
+negE = -6179.45
+nLeadCell = 10
+ootFrac = 0.0336657
+avgLArQF = 8762.78
+hecQual = 0
+negE = -14333.7
+nLeadCell = 2
+ootFrac = 0
+avgLArQF = 73.1208
+hecQual = 0
+negE = -727.051

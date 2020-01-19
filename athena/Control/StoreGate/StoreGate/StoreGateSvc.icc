@@ -1,0 +1,619 @@
+/* -*- C++ -*- */
+
+/*
+  Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
+*/
+
+/** @file SGHiveStore.icc
+ *  forwarded implementation of StoreGateSvc methods
+ */
+
+#ifndef STOREGATE_STOREGATESVC_ICC
+#define STOREGATE_STOREGATESVC_ICC
+#include <vector>
+
+/// macro to help writing the function calls.
+/// first looks if there is a hive slot defined, otherwise forwards to the "serial" implementation
+#define _SGXCALL(FUN,ARGS,ONERR)                                        \
+  if (isHiveStore()) {                                                  \
+    SG::HiveEventSlot* pSlot(StoreGateSvc::currentSlot());              \
+    SG::HiveEventSlot::mutex_t::scoped_lock lock; lock.acquire(pSlot->storeMutex); \
+    return (0 != pSlot->pEvtStore) ?                                    \
+      pSlot->pEvtStore->FUN ARGS : ONERR;                               \
+  } else {                                                              \
+    std::lock_guard<std::recursive_mutex> lock (m_recMutex);            \
+    return m_defaultStore->FUN ARGS; }
+
+/// macro to help writing the function calls
+#define _SGVOIDCALL(FUN,ARGS)                                           \
+  if (isHiveStore()) {                                                  \
+    SG::HiveEventSlot* pSlot(StoreGateSvc::currentSlot());              \
+    SG::HiveEventSlot::mutex_t::scoped_lock lock; lock.acquire(pSlot->storeMutex); \
+    if (0 != pSlot->pEvtStore) pSlot->pEvtStore->FUN ARGS;              \
+  } else {                                                              \
+    std::lock_guard<std::recursive_mutex> lock (m_recMutex);            \
+    m_defaultStore->FUN ARGS; }
+
+inline
+SG::DataProxy* 
+StoreGateSvc::proxy(const CLID& id, const char* key) const {
+  _SGXCALL( proxy, (id, key), 0 ); 
+}
+
+inline
+SG::DataProxy* 
+StoreGateSvc::proxy_exact (SG::sgkey_t sgkey) const { 
+  _SGXCALL( proxy_exact, (sgkey), 0 ); 
+}
+
+template <typename H, typename TKEY>
+StatusCode 
+StoreGateSvc::regHandle( const DataHandle<H>& handle, const TKEY& key ) {
+  _SGXCALL( regHandle, (handle, key), StatusCode::FAILURE );
+}
+
+/// non-const method - will return an error
+template <typename H, typename TKEY>
+StatusCode 
+StoreGateSvc::regHandle( DataHandle<H>& handle, const TKEY& key) {
+  _SGXCALL( regHandle, (handle, key), StatusCode::FAILURE );
+}
+
+/// register a callback function, with handle + key
+template <typename T, typename H, typename TKEY>
+StatusCode 
+StoreGateSvc::regFcn(StatusCode (T::*updFcn)(IOVSVC_CALLBACK_ARGS), 
+                     const T* obj, const DataHandle<H>& handle, 
+                     const TKEY& key, bool trigger) {
+  _SGXCALL( regFcn, (updFcn, obj, handle, key, trigger), StatusCode::FAILURE );
+}
+
+/// register a callback function, with handle + key. Non const. Error
+template <typename T, typename H, typename TKEY>
+StatusCode 
+StoreGateSvc::regFcn(StatusCode (T::*updFcn)(IOVSVC_CALLBACK_ARGS), 
+                     const T* obj, DataHandle<H>& handle, 
+                     const TKEY& key, bool trigger) {
+  _SGXCALL( regFcn, (updFcn, obj, handle, key, trigger), StatusCode::FAILURE );
+}
+
+
+/// register a callback function(2) with an already registered function(1)
+template <typename T1, typename T2>
+StatusCode 
+StoreGateSvc::regFcn(StatusCode (T1::*fcn1)(IOVSVC_CALLBACK_ARGS), 
+                     const T1* obj1,
+                     StatusCode (T2::*fcn2)(IOVSVC_CALLBACK_ARGS), 
+                     const T2* obj2, bool trigger) {
+  _SGXCALL( regFcn, (fcn1, obj1, fcn2, obj2, trigger), StatusCode::FAILURE );
+}
+
+
+/// register a callback function(2) with an already registered AlgTool
+template <typename T2>
+StatusCode 
+StoreGateSvc::regFcn(const std::string& toolName,
+                     StatusCode (T2::*fcn2)(IOVSVC_CALLBACK_ARGS), 
+                     const T2* obj2, bool trigger) {
+  _SGXCALL( regFcn, (toolName, fcn2, obj2, trigger), StatusCode::FAILURE );
+}
+
+#ifndef BOOST_NO_CXX11_TEMPLATE_ALIASES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
+///////////////////////////////////////////////////////////////////
+// create an object and record it with key
+//////////////////////////////////////////////////////////////////
+template <typename T, typename TKEY, typename... ARGS>
+SG::WPtr<T> 
+StoreGateSvc::create(const TKEY& key, ARGS... constructorArgs) {
+  T* pT = new T(constructorArgs...);
+  if(!(this->record(pT, key).isSuccess())) {
+    msg() << MSG::ERROR << "create: problem recording created object @" 
+          << pT << " using key " << key << endmsg;
+    pT=0; //record will take care of deleting pT even if it fails
+  }
+  return pT;
+}
+#endif
+#endif
+///////////////////////////////////////////////////////////////////
+// record an object with key
+//////////////////////////////////////////////////////////////////
+template <typename T, typename TKEY> 
+StatusCode StoreGateSvc::record(std::auto_ptr<T> pAuto, const TKEY& key)
+{
+  const bool ALLOWMODS(true);
+  _SGXCALL(record, (pAuto.release(), key, ALLOWMODS), StatusCode::FAILURE); //SG takes ownership
+}
+
+template <typename T, typename TKEY> 
+StatusCode 
+StoreGateSvc::overwrite(std::auto_ptr<T> p2BRegistered, const TKEY& key) 
+{
+  _SGXCALL(overwrite, (p2BRegistered, key), StatusCode::FAILURE);
+}
+
+//-------------------------------------------------------------------
+template <typename T, typename TKEY> 
+StatusCode StoreGateSvc::record(T* pObject, const TKEY& key)
+{
+  const bool ALLOWMODS(true);
+  _SGXCALL(record, (pObject, key, ALLOWMODS), StatusCode::FAILURE);
+}
+//-------------------------------------------------------------------
+template <typename T, typename TKEY>
+StatusCode StoreGateSvc::record(const T* pObject, const TKEY& key)
+{
+  const bool NOMODS(false);
+  _SGXCALL(record, (const_cast<T*>(pObject), key, NOMODS), StatusCode::FAILURE);
+}
+
+//-------------------------------------------------------------------
+template <typename T, typename TKEY> 
+StatusCode StoreGateSvc::record(T* pObject, const TKEY& key, 
+                                bool allowMods, bool resetOnly, bool noHist)
+{
+  _SGXCALL(record, (pObject, key, allowMods, resetOnly, noHist ), StatusCode::FAILURE);
+}
+//////////////////////////////////////////////////////////////////
+// Retrieve the default object (with no key) as a const pointer
+//////////////////////////////////////////////////////////////////
+template <typename T> 
+StatusCode StoreGateSvc::retrieve(const T*& ptr)
+{
+  _SGXCALL(retrieve, (ptr), StatusCode::FAILURE);
+}
+
+//////////////////////////////////////////////////////////////////
+// Retrieve the default object (with no key) as a pointer (non-const)
+//////////////////////////////////////////////////////////////////
+template <typename T> 
+StatusCode StoreGateSvc::retrieve(T*& ptr)
+{
+  _SGXCALL(retrieve, (ptr), StatusCode::FAILURE);
+}
+
+//////////////////////////////////////////////////////////////////
+// Retrieve the keyed object as a const pointer
+//////////////////////////////////////////////////////////////////
+template <typename T, typename TKEY>
+StatusCode StoreGateSvc::retrieve(const T*& ptr, const TKEY& key)
+{
+  _SGXCALL(retrieve, (ptr, key), StatusCode::FAILURE);
+}
+
+//////////////////////////////////////////////////////////////////
+// Retrieve the keyed object as a non-const pointer
+//////////////////////////////////////////////////////////////////
+template <typename T, typename TKEY>
+StatusCode StoreGateSvc::retrieve(T*& ptr, const TKEY& key)
+{
+  _SGXCALL(retrieve, (ptr, key), StatusCode::FAILURE);
+}
+
+/// Retrieve all objects of type T: returns an SG::ConstIterator range
+template <typename T> 
+StatusCode 
+StoreGateSvc::retrieve(SG::ConstIterator<T>& begin, 
+                       SG::ConstIterator<T>& end) {
+  _SGXCALL(retrieve, (begin, end), StatusCode::FAILURE);
+}
+
+
+/**
+ * @brief Retrieve an object of type @c T from storegate.
+ *        Return 0 if not found.
+ **/
+
+template <typename T>
+T* StoreGateSvc::retrieve ()
+{
+  _SGXCALL(retrieve<T>, (), 0);
+}
+
+/**
+ * @brief Retrieve an object of type @c T from storegate.
+ *        Return 0 if not found.
+ * @param key The key to use for the lookup.
+ **/
+template <typename T, class TKEY>
+T* StoreGateSvc::retrieve (const TKEY& key)
+{
+  _SGXCALL(retrieve<T>, (key), 0);
+}
+
+/**
+ * @brief Retrieve an object of type @c T from storegate.
+ *        Return 0 if not found.
+ **/
+template <typename T>
+T* StoreGateSvc::tryRetrieve ()
+{
+  _SGXCALL(tryRetrieve<T>, (), 0);
+}
+
+template <typename T>
+const T* StoreGateSvc::tryConstRetrieve()
+{
+  _SGXCALL(tryConstRetrieve<T>, (), 0);
+}
+
+/**
+ * @brief Retrieve an object of type @c T from storegate.
+ *        Return 0 if not found. Don't print any WARNINGs
+ * @param key The key to use for the lookup.
+ **/
+template <typename T, class TKEY>
+T* StoreGateSvc::tryRetrieve (const TKEY& key)
+{
+  _SGXCALL(tryRetrieve<T>, (key), 0);
+}
+
+template <typename T, class TKEY>
+const T* StoreGateSvc::tryConstRetrieve (const TKEY& key)
+{
+  _SGXCALL(tryConstRetrieve<T>, (key), 0);
+}
+
+/**
+ * @brief Retrieve an object of type @c T from storegate and associate it
+ *        to its auxiliary store
+ *        Return 0 the object or the aux store is not found.
+ * @param key The key to use for the lookup.
+ **/
+template <typename T, class TKEY>
+T* StoreGateSvc::retrieveAux (const TKEY& key)
+{
+  _SGXCALL(retrieveAux<T>, (key), 0);
+}
+
+template <typename T, class TKEY>
+const T* StoreGateSvc::constRetrieveAux (const TKEY& key)
+{
+  _SGXCALL(constRetrieveAux<T>, (key), 0);
+}
+
+template <typename T>
+int StoreGateSvc::typeCount() const
+{
+  return typeCount(ClassID_traits<T>::ID());
+}
+
+
+template <typename T, typename TKEY> 
+bool 
+StoreGateSvc::contains(const TKEY& key) const 
+{
+  return this->contains(ClassID_traits<T>::ID(), key);
+}
+
+template <typename TKEY> 
+bool 
+StoreGateSvc::contains(const CLID& clid, const TKEY& key) const 
+{
+  _SGXCALL( contains, (clid,key), false );
+}
+
+template <typename T, typename TKEY> 
+bool 
+StoreGateSvc::transientContains(const TKEY& key) const 
+{
+  return transientContains(ClassID_traits<T>::ID(), key);
+}
+
+
+
+template <typename TKEY>
+bool 
+StoreGateSvc::transientContains(const CLID& id, const TKEY& key) const
+{
+  _SGXCALL(transientContains, (id, key), false);
+}
+
+//-------------------------end of contains methods--------------------
+template <typename T>
+void
+StoreGateSvc::keys(std::vector<std::string>& vkeys, 
+                   bool includeAlias, bool onlyValid) {
+  return this->keys(ClassID_traits<T>::ID(), vkeys, includeAlias, onlyValid);
+} 
+
+
+template <typename T, typename TKEY>
+StatusCode 
+StoreGateSvc::bind(const DataHandle<T>& handle, const TKEY& key) {
+  _SGXCALL(bind, (handle, key), StatusCode::FAILURE);
+}
+
+#if __cplusplus > 201100
+//-------------------------------------------------------------------
+template <typename T, typename TKEY> 
+StatusCode StoreGateSvc::record(std::unique_ptr<T> pUnique, const TKEY& key)
+{
+  _SGXCALL(record, (std::move(pUnique), key), StatusCode::FAILURE);
+}
+//-------------------------------------------------------------------
+template <typename T, typename TKEY>
+StatusCode StoreGateSvc::record(std::unique_ptr<const T> pUnique,
+                                const TKEY& key)
+{
+  _SGXCALL(record, (std::move(pUnique), key), StatusCode::FAILURE);
+}
+
+//-------------------------------------------------------------------
+template <typename T, typename TKEY> 
+StatusCode StoreGateSvc::record(std::unique_ptr<T> pUnique, const TKEY& key, 
+                                bool allowMods, bool resetOnly, bool noHist)
+{
+  _SGXCALL(record, (std::move(pUnique), key, allowMods, resetOnly, noHist), StatusCode::FAILURE);
+}
+#endif
+
+template <typename T, typename TKEY> 
+StatusCode StoreGateSvc::overwrite(T* p2BRegistered, const TKEY& key)
+{
+  const bool ALLOWMODS(true);
+  return overwrite(p2BRegistered, key, ALLOWMODS); //SG takes ownership
+}
+
+template <typename T, typename TKEY> 
+StatusCode 
+StoreGateSvc::overwrite(T* pObject, const TKEY& key, 
+                        bool allowMods, bool noHist) 
+{
+  _SGXCALL(overwrite, (pObject, key, allowMods, noHist), StatusCode::FAILURE);
+}
+
+#if __cplusplus > 201100
+template <typename T, typename TKEY> 
+StatusCode StoreGateSvc::overwrite(std::unique_ptr<T> pUnique, const TKEY& key)
+{
+  _SGXCALL(overwrite, (std::move(pUnique), key), StatusCode::FAILURE);
+}
+
+template <typename T, typename TKEY> 
+StatusCode StoreGateSvc::overwrite(std::unique_ptr<T> pUnique, const TKEY& key, 
+                                   bool allowMods, bool noHist)
+{
+  _SGXCALL(overwrite, (std::move(pUnique), key, allowMods, noHist), StatusCode::FAILURE);
+}
+#endif
+
+template <typename T, typename AKEY>
+StatusCode StoreGateSvc::setAlias(const T* pObject, const AKEY& aKey)
+{
+  _SGXCALL(setAlias, (pObject, aKey), StatusCode::FAILURE);
+}
+//-------------------------------------------------------------------
+template <typename T, typename TKEY, typename AKEY>
+StatusCode 
+StoreGateSvc::setAlias(const T* dummy,
+                       const TKEY& key, const AKEY& aKey)
+{
+  _SGXCALL(setAlias, (dummy, key, aKey), StatusCode::FAILURE);
+}
+
+//////////////////////////////////////////////////////////////////
+// Make a soft link to the object with key: return non_const link
+//////////////////////////////////////////////////////////////////
+template <typename T, typename TLINK> 
+StatusCode 
+StoreGateSvc::symLink(const T* pObject, TLINK* dummy)
+{
+  _SGXCALL(symLink, (pObject, dummy), StatusCode::FAILURE);
+}
+
+//////////////////////////////////////////////////////////////////
+// Make a soft link to the object with key: set const link
+//////////////////////////////////////////////////////////////////
+template <typename T, typename TLINK> 
+StatusCode 
+StoreGateSvc::symLink(const T* pObject, const TLINK* dummy)
+{
+  _SGXCALL(symLink, (pObject, dummy), StatusCode::FAILURE);
+}
+
+template <typename TKEY> 
+StatusCode 
+StoreGateSvc::symLink(const CLID& id, const TKEY& key, const CLID& linkid)
+{
+  _SGXCALL(symLink, (id, key, linkid), StatusCode::FAILURE);
+}
+
+
+/// Remove pObject,  will remove its proxy if not reset only.
+template <typename T>
+StatusCode 
+StoreGateSvc::remove(const T* pObject) {
+  _SGXCALL(remove, (pObject), StatusCode::FAILURE);
+}
+
+/// Remove pObject and its proxy no matter what.         
+template <typename T>    
+StatusCode 
+StoreGateSvc::removeDataAndProxy(const T* pObject)  {
+  _SGXCALL(removeDataAndProxy, (pObject), StatusCode::FAILURE);
+}
+
+template <typename T, class TKEY>
+StatusCode 
+StoreGateSvc::retrieveHighestVersion(SG::ObjectWithVersion<T>& dobjWithVersion, 
+                                     const TKEY& requestedKey) {
+  _SGXCALL(retrieveHighestVersion, (dobjWithVersion, requestedKey), StatusCode::FAILURE);
+}
+
+template <typename T, class TKEY>
+StatusCode
+StoreGateSvc::retrieveAllVersions(std::list< SG::ObjectWithVersion<T> >& allVersions,
+                                  const TKEY& requestedKey) {
+  _SGXCALL(retrieveAllVersions, (allVersions, requestedKey), StatusCode::FAILURE);
+}
+
+
+template <typename T>
+std::auto_ptr<T> 
+StoreGateSvc::readPrivateCopy (const std::string& key) {
+  std::auto_ptr<T> nullT;
+  _SGXCALL(readPrivateCopy<T>, (key), nullT);
+}
+
+
+template <typename T>
+std::auto_ptr<T> 
+StoreGateSvc::retrievePrivateCopy (const std::string& key) {
+  std::auto_ptr<T> nullT;
+  _SGXCALL(retrievePrivateCopy<T>, (key), nullT);
+}
+
+template <typename T>
+std::unique_ptr<T> 
+StoreGateSvc::readUniquePrivateCopy (const std::string& key) {
+  if (isHiveStore()) {                                                  
+    SG::HiveEventSlot* pSlot(StoreGateSvc::currentSlot());              
+    SG::HiveEventSlot::mutex_t::scoped_lock lock; lock.acquire(pSlot->storeMutex); 
+    return (0 != pSlot->pEvtStore) ?                                    
+      pSlot->pEvtStore->readUniquePrivateCopy<T>(key) :
+      std::unique_ptr<T>{};                     
+  } else { 
+    std::lock_guard<std::recursive_mutex> lock (m_recMutex); 
+    return m_defaultStore->readUniquePrivateCopy<T>(key);
+  } 
+}
+
+
+template <typename T>
+std::unique_ptr<T> 
+StoreGateSvc::retrieveUniquePrivateCopy (const std::string& key) {
+  if (isHiveStore()) {                                                  
+    SG::HiveEventSlot* pSlot(StoreGateSvc::currentSlot());              
+    SG::HiveEventSlot::mutex_t::scoped_lock lock; lock.acquire(pSlot->storeMutex); 
+    return (0 != pSlot->pEvtStore) ?                                    
+      pSlot->pEvtStore->retrieveUniquePrivateCopy<T>(key) :
+      std::unique_ptr<T>{};                     
+  } else { 
+    std::lock_guard<std::recursive_mutex> lock (m_recMutex); 
+    return m_defaultStore->retrieveUniquePrivateCopy<T>(key);
+  } 
+}
+
+//////////////////////////////////////////////////////////////////
+// Retrieve the @c CLID of a given "key" 
+// WARNING: slow!
+//////////////////////////////////////////////////////////////////
+template<typename TKEY>
+CLID 
+StoreGateSvc::clid( const TKEY& key ) const
+{
+  _SGXCALL(clid, (key), CLID_NULL);
+}
+
+//////////////////////////////////////////////////////////////////
+// Retrieve the @c CLID s of a given "key" 
+// WARNING: slow!
+//////////////////////////////////////////////////////////////////
+template<typename TKEY>
+std::vector<CLID> 
+StoreGateSvc::clids( const TKEY& key ) const
+{
+  std::vector<CLID> nullV;
+  _SGXCALL(clids, (key), nullV);
+}
+
+///////////////////////////////////////////////////////////////////////////
+
+inline
+void 
+StoreGateSvc::setProxyProviderSvc(IProxyProviderSvc* pPPSvc) {
+  _SGVOIDCALL(setProxyProviderSvc, (pPPSvc));
+}
+
+
+/**
+ * @brief associate a data object to its auxiliary store
+ *        Return false if the aux store is not found.
+ * @param key The key to use for the lookup.
+ **/
+template <class DOBJ>
+bool StoreGateSvc::associateAux (DataHandle<DOBJ>& handle, bool ignoreMissing)
+{
+  _SGXCALL(associateAux, (handle, ignoreMissing), false);
+}
+
+template <class DOBJ>
+bool StoreGateSvc::associateAux (const DataHandle<DOBJ>& handle, bool ignoreMissing)
+{
+  _SGXCALL(associateAux, (handle, ignoreMissing), false);
+}
+
+template <class TKEY>
+void 
+StoreGateSvc::remap (CLID clid,
+                     const TKEY& source,
+                     const TKEY& target,
+                     off_t index_offset) {
+  _SGVOIDCALL(remap, (clid, source, target, index_offset));
+}
+
+
+/// DEPRECATED: Retrieve the default object into a const DataHandle
+template <typename T> 
+StatusCode 
+StoreGateSvc::retrieve(const DataHandle<T>& handle) {
+  _SGXCALL(retrieve, (handle), StatusCode::FAILURE);
+}
+
+/// DEPRECATED: Retrieve the default object into a DataHandle
+template <typename T> 
+StatusCode
+StoreGateSvc::retrieve(DataHandle<T>& handle) {
+  _SGXCALL(retrieve, (handle), StatusCode::FAILURE);
+}
+
+/// DEPRECATED: Retrieve an object with "key", into a const DataHandle
+template <typename T, typename TKEY> 
+StatusCode 
+StoreGateSvc::retrieve(const DataHandle<T>& handle, const TKEY& key) {
+  _SGXCALL(retrieve, (handle, key), StatusCode::FAILURE);
+}
+
+/// DEPRECATED: Retrieve an object with "key", into a DataHandle
+template <typename T, typename TKEY> 
+StatusCode 
+StoreGateSvc::retrieve(DataHandle<T>& handle, const TKEY& key) {
+  _SGXCALL(retrieve, (handle, key), StatusCode::FAILURE);
+}
+
+/// DEPRECATED Retrieve all objects of type T: use iterators version instead
+template <typename T> 
+StatusCode 
+StoreGateSvc::retrieve(const DataHandle<T>& begin, 
+                       const DataHandle<T>& end) {
+  _SGXCALL(retrieve, (begin, end), StatusCode::FAILURE);
+}
+
+/// DEPRECATED put a dobj pointer in a bucket as appropriate
+/// see tools/StorableConversion.h for replacement
+template <typename T>
+DataObject* 
+StoreGateSvc::asStorable(T* pDObj) {
+  return SG::asStorable(pDObj);
+}
+/// DEPRECATED gets a dobj pointer from a bucket as appropriate
+/// see tools/StorableConversion.h for replacement
+template <typename T> 
+bool 
+StoreGateSvc::fromStorable(DataObject* pObject, T*& pData) {
+  return SG::fromStorable(pObject, pData);
+}
+
+
+/// DEPRECATED, use version taking ref to vector
+template <typename T>
+std::vector<std::string> //FIXME inefficient. Should take ref to vector
+StoreGateSvc::keys(bool allKeys) {
+  std::vector<std::string> nullV;
+  _SGXCALL( keys<T>, (allKeys), nullV );
+}
+
+
+#endif //STOREGATE_STOREGATESVC_ICC

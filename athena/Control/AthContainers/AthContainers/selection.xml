@@ -1,0 +1,191 @@
+<lcgdict>
+  <class name="UserDataStore"/>
+
+  <class name="SG::AuxTypeRegistry"/>
+  <class name="SG::AuxVectorBase"/>
+  <class name="SG::AuxVectorData">
+    <field name="m_cache" transient="true"/>
+    <field name="m_constCache" transient="true"/>
+    <field name="m_decorCache" transient="true"/>
+    <field name="m_store" transient="true"/>
+    <field name="m_constStore" transient="true"/>
+    <field name="m_constStoreLink" transient="true"/>
+    <field name="m_mutex" transient="true"/>
+  </class>
+  <class name="SG::AuxElement">
+    <field name="m_index" transient="true"/>
+    <field name="m_container" transient="true"/>
+    <field name="m_privateData" transient="true"/>
+  </class>
+  <class name="SG::IAuxElement">
+    <field name="m_dummy" transient="true"/>
+  </class>
+  <class name="SG::IAuxStore"/>
+  <class name="SG::IConstAuxStore"/>
+  <class name="DataLink<SG::IConstAuxStore>" />
+  <class name="SG::IAuxStoreIO"/>
+  <class name="SG::IAuxStoreHolder"/>
+  <class name="SG::IAuxTypeVectorFactory"/>
+  <class name="SG::AuxStoreInternal" id="77039D3D-4E24-46C1-B5D1-9AD5F17D3B09">
+    <field name="m_vecs" transient="true"/>
+    <field name="m_isDecoration" transient="true"/>
+    <field name="m_auxids" transient="true"/> 
+    <field name="m_tick" transient="true"/>
+    <field name="m_locked" transient="true"/>
+    <field name="m_mutex" transient="true"/>
+    <field name="m_tsAuxids" transient="true"/>
+  </class>
+  <class name="SG::auxid_set_t"/>
+  <!--<class pattern="SG::hashtable<unsigned *,unsigned *,std::allocator<unsigned *>,CxxUtils_Internal::identity<unsigned *>,std::equal_to<unsigned *>,SG::hash<unsigned *>,CxxUtils_Internal::mod_range_hashing,CxxUtils_Internal::default_ranged_hash,CxxUtils_Internal::prime_rehash_policy,false,true,true>">
+    <field name="m_payload_allocator" transient="true"/>
+  </class>-->
+  <class pattern="SG::hashtable<unsigned *"/>
+  <!--<class pattern="SG::hashtable_const_iterator<unsigned *"/>-->
+  <!--<class pattern="SG::hashtable_iterator<unsigned *"/>-->
+  <!--<class pattern="std::pair<*hashtable<unsigned *"/>-->
+  <function proto_pattern="*operator!=*hashtable_iterator<unsigned *"/>
+  <function proto_pattern="*operator!=*hashtable_const_iterator<unsigned *"/>
+  <function proto_pattern="*operator==*hashtable_iterator<unsigned *"/>
+  <function proto_pattern="*operator==*hashtable_const_iterator<unsigned *"/>
+  <class name="CxxUtils_Internal::prime_rehash_policy"/>
+
+  <class name="SG::ViewVectorBase">
+    <field name="m_clearOnPersistent" transient="true"/>
+  </class>
+  <read sourceClass="SG::ViewVectorBase" version="[1-]"
+        targetClass="SG::ViewVectorBase" source=""
+        target=""
+        >
+    <![CDATA[
+       // Let the object prepare for being used:
+       if (newObj) newObj->toTransient();
+    ]]>
+  </read>
+
+  <class name="SG::AuxElement::TypelessConstAccessor"/>
+
+  <class name="SG::AuxElement::ConstAccessor<char>"/>
+  <class name="SG::AuxElement::ConstAccessor<unsigned char>"/>
+  <class name="SG::AuxElement::ConstAccessor<int>"/>
+  <class name="SG::AuxElement::ConstAccessor<short>"/>
+  <class name="SG::AuxElement::ConstAccessor<long>"/>
+  <class name="SG::AuxElement::ConstAccessor<unsigned int>"/>
+  <class name="SG::AuxElement::ConstAccessor<unsigned short>"/>
+  <class name="SG::AuxElement::ConstAccessor<unsigned long>"/>
+  <class name="SG::AuxElement::ConstAccessor<unsigned long long>"/>
+  <class name="SG::AuxElement::ConstAccessor<float>"/>
+  <class name="SG::AuxElement::ConstAccessor<double>"/>
+  <class name="SG::AuxElement::ConstAccessor<bool>"/>
+  <class name="SG::AuxElement::ConstAccessor<std::string>"/>
+
+  <class name="SG::AuxElement::ConstAccessor<std::vector<char> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<unsigned char> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<int> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<short> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<long> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<unsigned int> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<unsigned short> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<unsigned long> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<unsigned long long> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<float> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<double> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<bool> >"/>
+  <class name="SG::AuxElement::ConstAccessor<std::vector<std::string> >"/>
+
+  <class name="SG::AuxElement::Accessor<char>"/>
+  <class name="SG::AuxElement::Accessor<unsigned char>"/>
+  <class name="SG::AuxElement::Accessor<int>"/>
+  <class name="SG::AuxElement::Accessor<short>"/>
+  <class name="SG::AuxElement::Accessor<long>"/>
+  <class name="SG::AuxElement::Accessor<unsigned int>"/>
+  <class name="SG::AuxElement::Accessor<unsigned short>"/>
+  <class name="SG::AuxElement::Accessor<unsigned long>"/>
+  <class name="SG::AuxElement::Accessor<unsigned long long>"/>
+  <class name="SG::AuxElement::Accessor<float>"/>
+  <class name="SG::AuxElement::Accessor<double>"/>
+  <class name="SG::AuxElement::Accessor<bool>"/>
+  <class name="SG::AuxElement::Accessor<std::string>"/>
+
+  <class name="SG::AuxElement::Accessor<std::vector<char> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<unsigned char> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<int> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<short> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<long> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<unsigned int> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<unsigned short> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<unsigned long> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<unsigned long long> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<float> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<double> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<bool> >"/>
+  <class name="SG::AuxElement::Accessor<std::vector<std::string> >"/>
+
+  <class name="SG::AuxElement::Decorator<char>"/>
+  <class name="SG::AuxElement::Decorator<unsigned char>"/>
+  <class name="SG::AuxElement::Decorator<int>"/>
+  <class name="SG::AuxElement::Decorator<short>"/>
+  <class name="SG::AuxElement::Decorator<long>"/>
+  <class name="SG::AuxElement::Decorator<unsigned int>"/>
+  <class name="SG::AuxElement::Decorator<unsigned short>"/>
+  <class name="SG::AuxElement::Decorator<unsigned long>"/>
+  <class name="SG::AuxElement::Decorator<unsigned long long>"/>
+  <class name="SG::AuxElement::Decorator<float>"/>
+  <class name="SG::AuxElement::Decorator<double>"/>
+  <class name="SG::AuxElement::Decorator<bool>"/>
+  <class name="SG::AuxElement::Decorator<std::string>"/>
+
+  <class name="SG::AuxElement::Decorator<std::vector<char> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<unsigned char> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<int> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<short> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<long> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<unsigned int> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<unsigned short> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<unsigned long> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<unsigned long long> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<float> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<double> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<bool> >"/>
+  <class name="SG::AuxElement::Decorator<std::vector<std::string> >"/>
+
+  <class name="SG::PackedParameters"/> 
+
+  <enum name="SG::OwnershipPolicy"/>
+
+  <class name="SG::IAuxSetOption"/>
+  <class name="SG::AuxDataOption"/>
+
+  <class name="SG::PackedContainer<char>"/>
+  <class name="SG::PackedContainer<unsigned char>"/>
+  <class name="SG::PackedContainer<short>"/>
+  <class name="SG::PackedContainer<unsigned short>"/>
+  <class name="SG::PackedContainer<int>"/>
+  <class name="SG::PackedContainer<unsigned int>"/>
+  <class name="SG::PackedContainer<float>"/>
+  <class name="SG::PackedContainer<double>"/>
+
+  <class name="SG::PackedContainer<std::vector<char> >"/>
+  <class name="SG::PackedContainer<std::vector<unsigned char> >"/>
+  <class name="SG::PackedContainer<std::vector<short> >"/>
+  <class name="SG::PackedContainer<std::vector<unsigned short> >"/>
+  <class name="SG::PackedContainer<std::vector<int> >"/>
+  <class name="SG::PackedContainer<std::vector<unsigned int> >"/>
+  <class name="SG::PackedContainer<std::vector<float> >"/>
+  <class name="SG::PackedContainer<std::vector<double> >"/>
+
+  <class name="SG::PackedContainer<std::vector<std::vector<char> > >"/>
+  <class name="SG::PackedContainer<std::vector<std::vector<unsigned char> > >"/>
+  <class name="SG::PackedContainer<std::vector<std::vector<short> > >"/>
+  <class name="SG::PackedContainer<std::vector<std::vector<unsigned short> > >"/>
+  <class name="SG::PackedContainer<std::vector<std::vector<int> > >"/>
+  <class name="SG::PackedContainer<std::vector<std::vector<unsigned int> > >"/>
+  <class name="SG::PackedContainer<std::vector<std::vector<float> > >"/>
+  <class name="SG::PackedContainer<std::vector<std::vector<double> > >"/>
+
+  <function name="SGdebug::aux_var_name"/>
+  <function name="SGdebug::print_aux_var_name"/>
+  <function name="SGdebug::aux_var_as_string"/>
+  <function name="SGdebug::print_aux_vars"/>
+  <function name="SGdebug::dump_aux_vars"/>
+
+</lcgdict>

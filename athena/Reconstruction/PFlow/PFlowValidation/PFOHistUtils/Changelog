@@ -1,0 +1,51 @@
+28 July 2016 Mark Hodgkinson
+Add charged Pt, expected energy deposit and inDensEnrvironment histograms binned in three eta ranges.
+Tag as PFOHistUtils-00-00-13
+
+29 June Mark Hodgkinson
+Update histogram binnings
+Tag as PFOHistUtils-00-00-12
+	
+29 June 2016 Mark Hodgkinson
+Add PFOAlgPropertyPlots	to monitor PFlow algorithm internal variables.
+Tag as PFOHistUtils-00-00-11	
+
+6 July 2015 Mark Hodgkinson
+Fix Coverity issues 19828, 25016,17411,17009,17168 (all related to unitialised histogram pointers)
+Tag as PFOHistUtils-00-00-10
+	
+18 February 2015 Mark Hodgkinson
+Add CELL_SIG_SAMPLING plot for topoclusters
+Tag as PFOHistUtils-00-00-09    	
+
+4 November 2014 Mark Hodgkinson
+Add new PFOAttributes class
+Tag as PFOHistUtils-00-00-08	
+	
+3 October 2014 Mark Hodgkinson
+Update to fill new topocluster moment histograms
+Tag as PFOHistUtils-00-00-07
+	
+11 July 2014 M. Hodgkinson
+Added new module to define histograms for CaloClusters
+PFOHistUtils-00-00-06
+
+8 July 2014 M. Hodgkinson
+Fix longitudinal moment histogram, so we fill it
+PFOHistUtils-00-00-05	
+
+7 July 2014 M. Hodgkinson
+Add new cluster moment histogram tool	
+PFOHistUtils-00-00-04
+
+23 May 2014 M. Hodgkinson
+Update histogram binnings
+Tag as PFOHistUtils-00-00-03
+
+13 May 2014 M. Hodgkinson
+Update histogram binnings to be more reasonable
+Tag as PFOHistUtils-00-00-02
+
+29 April 2014 M. Hodgkinson
+Create PFOHistUtils package with 4-vector histograms at both LC and EM scales
+Tag as PFOHistUtils-00-00-01

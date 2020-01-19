@@ -1,0 +1,36 @@
+<!--
+  $Id: selection.xml,v 1.7 2008-11-21 06:31:28 ssnyder Exp $
+
+  File: DataModelTestDataWrite/selection.xml
+  Author: snyder@bnl.gov
+  Date: Nov 2005
+  Purpose: LCG dictionary generation selection file.
+-->
+
+<lcgdict>
+
+  <class name="DMTest::BDer" id="F899E479-B507-44CD-B571-B3CD254D215D"/>
+  <class name="DMTest::DDer" id="BF1FF2FB-332A-497B-B55E-D704108C68D0"/>
+  <class name="std::vector<DMTest::B*>"/>
+  <class name="std::vector<DMTest::D*>"/>
+  <class name="DataVector<DMTest::B>" id="726A6BED-3DD9-4AD9-9F5E-1DCBFA42EB75"/>
+  <class name="DataVector<DMTest::D>" id="14085919-C66D-45B2-A183-17D77986CACC"/>
+
+  <class name="DMTest::ELVec" id="08A5FE26-1553-44E0-BFC4-196B96D3AD44">
+    <field name="m_elv2" transient="true"/>
+    <field name="m_el2" transient="true"/>
+    <field name="m_dl2" transient="true"/>
+  </class>
+
+  <class name="std::vector<ElementLink<DataVector<DMTest::B> > >"/>
+
+  <class name="DMTest::G_v1" id="0EA73CDC-FBD0-4241-9041-14D276B604CC"/>
+  <class name="DMTest::GVec_v1" id="C532D340-6D58-444F-9C34-54C7A3D645AD"/>
+  <class name="DMTest::GAuxContainer_v1" id="E70544A9-9D77-475E-AAD8-C5F967A44B66"/>
+
+  <class name="DMTest::H_v1" id="04CFD853-8DC0-4BAB-8886-BF16C79AAF76"/>
+  <class name="DMTest::HVec_v1" id="EAD7484F-1F40-4344-A667-BB9C47536BE6"/>
+  <class name="DMTest::HAuxContainer_v1" id="AFB5909C-1DF3-44AC-ABB5-9818204C2736"/>
+  <class name="DMTest::HView_v1" id="740C4020-F0A3-40B3-88E1-B15A8055DB64"/>
+  <class name="DMTest::HView_v1::Pers_t" id="55E513AA-EDF9-4860-945A-5B4E8C05C27A"/>
+</lcgdict>
